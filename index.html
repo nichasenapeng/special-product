@@ -1302,12 +1302,10 @@ function buildStatus(id){
   var MO_CAP={ytr:100,mar:380,ivqf:350,fur:350};
   var HEX={ytr:'#0d9488',mar:'#2563eb',ivqf:'#e07b39',fur:'#7c3aed'};
   var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">';
-
   for(var pi=0;pi<prods.length;pi++){
     var p=prods[pi]; var d=sd[p];
     var col=HEX[p];
     var hasAny=d.c+d.f+d.no+d.nn+d.y4+d.y5>0;
-    var sc=SC_CFG[d.sc]||SC_CFG.none;
     var pipeline=d.f+d.no+d.nn;
     var moCap=MO_CAP[p];
     var moAct=d.c>0?Math.round(d.c/12):0;
@@ -1316,53 +1314,56 @@ function buildStatus(id){
     var arr26c=yoy26>0?'#059669':yoy26<0?'#dc2626':'#9e9a94';
     var arr26s=yoy26>0?'↑+'+yoy26:yoy26<0?'↓'+yoy26:'→';
     var maxY=Math.max(d.y4||0,d.y5||0,d.c||0,1);
-
-    html+='<div style="background:#fff;border:1px solid #d0dcea;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px rgba(15,31,61,0.07);'+(hasAny?'':'opacity:.32;')+'">'
-      /* header strip */
-      +'<div style="padding:9px 12px 8px;border-bottom:1px solid #f0f4fa;display:flex;align-items:center;justify-content:space-between;">'
-        +'<div style="display:flex;align-items:center;gap:6px;">'
-          +'<div style="width:8px;height:8px;border-radius:2px;background:'+col+';flex-shrink:0;"></div>'
-          +'<span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:'+col+'">'+PROD_NAMES[p]+'</span>'
-        +'</div>'
-        +''
+    var w24=maxY>0?Math.round((d.y4||0)/maxY*100):0;
+    var w25=maxY>0?Math.round((d.y5||0)/maxY*100):0;
+    var w26=maxY>0?Math.round((d.c||0)/maxY*100):0;
+    html+='<div data-prod="'+p+'" style="background:#fff;border:1px solid #d0dcea;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px rgba(15,31,61,0.07);'+(hasAny?'':'opacity:.32;')+'">'
+      +'<div style="padding:9px 12px 8px;border-bottom:1px solid #f0f4fa;display:flex;align-items:center;gap:6px;">'
+        +'<div style="width:8px;height:8px;border-radius:2px;background:'+col+';flex-shrink:0;"></div>'
+        +'<span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:'+col+'">'+PROD_NAMES[p]+'</span>'
       +'</div>'
-      /* body: left num + right bars */
       +'<div style="display:grid;grid-template-columns:2fr 3fr;gap:0;">'
-        /* LEFT: confirmed + pipeline */
         +'<div style="padding:10px 12px;border-right:1px solid #f0f4fa;min-width:90px;">'
-          +'<div style="font-size:32px;font-weight:700;font-family:monospace;letter-spacing:-1px;color:'+(d.c>0?col:'#c8d5e8')+';line-height:1;">'+(d.c>0?d.c+'T':'—')+'</div>'
+          +'<div data-field="c26" style="font-size:32px;font-weight:700;font-family:monospace;letter-spacing:-1px;color:'+(d.c>0?col:'#c8d5e8')+';line-height:1;">'+(d.c>0?d.c+'T':'—')+'</div>'
           +'<div style="font-size:9px;color:#9e9a94;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Confirmed</div>'
-          /* progress */
           +'<div style="height:5px;background:#eef2f7;border-radius:3px;overflow:hidden;margin-bottom:3px;">'
-            +'<div style="height:100%;border-radius:3px;background:'+col+';width:'+pct+'%;"></div>'
+            +'<div data-field="bar" style="height:100%;border-radius:3px;background:'+col+';width:'+pct+'%;"></div>'
           +'</div>'
-          +'<div style="font-size:9px;color:#9e9a94;margin-bottom:6px;">'+pct+'% of '+moCap+'T/mo</div>'
-          /* pills */
+          +'<div data-field="pct" style="font-size:9px;color:#9e9a94;margin-bottom:6px;">'+pct+'% of '+moCap+'T/mo</div>'
           +'<div style="display:flex;flex-wrap:wrap;gap:4px;">'
-            +(pipeline>0?'<span style="font-size:9px;padding:2px 6px;background:#eff6ff;color:#2563eb;border-radius:6px;font-weight:600;font-family:monospace;">+'+pipeline+'T</span>':'')
-            +(d.c>0||d.y5>0?'<span style="font-size:9px;padding:2px 6px;background:'+(yoy26>=0?'#f0fdf4':'#fff1f2')+';color:'+arr26c+';border-radius:6px;font-weight:600;font-family:monospace;">'+arr26s+'T</span>':'')
+            +'<span data-field="pipe" style="font-size:9px;padding:2px 6px;background:#eff6ff;color:#2563eb;border-radius:6px;font-weight:600;font-family:monospace;display:'+(pipeline>0?'':'none')+'">'+(pipeline>0?'+'+pipeline+'T':'')+'</span>'
+            +'<span data-field="yoy" style="font-size:9px;padding:2px 6px;background:'+(yoy26>=0?'#f0fdf4':'#fff1f2')+';color:'+arr26c+';border-radius:6px;font-weight:600;font-family:monospace;">'+(d.c>0||d.y5>0?arr26s+'T':'')+'</span>'
           +'</div>'
         +'</div>'
-        /* RIGHT: horizontal bars */
         +'<div style="padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:5px;">'
-          +[['\'24',d.y4||0,0.35],['\'25',d.y5||0,0.6],['\'26',d.c||0,1]].map(function(yr){
-            var lbl=yr[0],val=yr[1],op=yr[2];
-            var w=maxY>0?Math.round(val/maxY*100):0;
-            var isCur=op===1;
-            return '<div style="display:flex;align-items:center;gap:6px;">'
-              +'<div style="width:20px;font-size:9px;color:#9e9a94;flex-shrink:0;font-family:monospace;">'+lbl+'</div>'
-              +'<div style="flex:1;height:'+(isCur?'16':'12')+'px;background:#f0f4fa;border-radius:3px;overflow:hidden;">'
-                +(val>0?'<div style="height:100%;width:'+w+'%;background:'+col+';opacity:'+op+';border-radius:3px;min-width:3px;"></div>':'')
-              +'</div>'
-              +'<div style="width:36px;font-size:'+(isCur?'11':'9')+'px;font-weight:'+(isCur?700:500)+';font-family:monospace;color:'+(isCur?col:'#65625c')+';text-align:right;flex-shrink:0;">'+(val>0?val+'T':'—')+'</div>'
-            +'</div>';
-          }).join('')
+          +'<div style="display:flex;align-items:center;gap:6px;">'
+            +'<div style="width:20px;font-size:9px;color:#9e9a94;flex-shrink:0;font-family:monospace;">'24</div>'
+            +'<div style="flex:1;height:12px;background:#f0f4fa;border-radius:3px;overflow:hidden;">'
+              +'<div data-bar="y24" style="height:100%;width:'+w24+'%;background:'+col+';opacity:.35;border-radius:3px;"></div>'
+            +'</div>'
+            +'<div data-field="y24" style="width:36px;font-size:9px;font-weight:500;font-family:monospace;color:#65625c;text-align:right;">'+(d.y4>0?d.y4+'T':'—')+'</div>'
+          +'</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;">'
+            +'<div style="width:20px;font-size:9px;color:#9e9a94;flex-shrink:0;font-family:monospace;">'25</div>'
+            +'<div style="flex:1;height:12px;background:#f0f4fa;border-radius:3px;overflow:hidden;">'
+              +'<div data-bar="y25" style="height:100%;width:'+w25+'%;background:'+col+';opacity:.6;border-radius:3px;"></div>'
+            +'</div>'
+            +'<div data-field="y25" style="width:36px;font-size:9px;font-weight:500;font-family:monospace;color:#65625c;text-align:right;">'+(d.y5>0?d.y5+'T':'—')+'</div>'
+          +'</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;">'
+            +'<div style="width:20px;font-size:9px;color:#9e9a94;flex-shrink:0;font-family:monospace;">'26</div>'
+            +'<div style="flex:1;height:16px;background:#f0f4fa;border-radius:3px;overflow:hidden;">'
+              +'<div data-bar="y26" style="height:100%;width:'+w26+'%;background:'+col+';border-radius:3px;"></div>'
+            +'</div>'
+            +'<div data-field="y26" style="width:36px;font-size:11px;font-weight:700;font-family:monospace;color:'+col+';text-align:right;">'+(d.c>0?d.c+'T':'—')+'</div>'
+          +'</div>'
         +'</div>'
       +'</div>'
     +'</div>';
   }
   return html+'</div>';
 }
+
 
 function buildPanel(id,d){
   d = d || (window.DATA && DATA[id]);
@@ -1707,145 +1708,190 @@ function applyLiveData(key, parsed){
   }
 }
 
-function isLocalFile(){
-  return window.location.protocol === 'file:';
-}
-
 function liveLoad(){
   var btn = document.getElementById('btn-refresh');
   var msg = document.getElementById('refresh-msg');
   var ts  = document.getElementById('hdr-ts');
 
-  if(isLocalFile()){
-    if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
-    if(msg){ msg.textContent='⚠️ เปิดจากไฟล์ local — กรุณาใช้ Netlify'; msg.style.color='var(--amb)'; }
+  if(window.location.protocol==='file:'){
+    if(msg){ msg.textContent='⚠️ กรุณาใช้งานผ่าน Netlify ไม่ใช่ไฟล์ local'; msg.style.color='var(--amb)'; }
     return;
   }
 
   if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดึงข้อมูล...'; }
   if(msg){ msg.textContent=''; }
 
-  var fetches = PROD_KEYS_LS.map(function(k){
+  var KEYS = ['ytr','mar','ivqf','fur'];
+  var CFG  = {
+    ytr: {cap:1200, mo:100, col:'#0d9488', name:'YTR'},
+    mar: {cap:4560, mo:380, col:'#2563eb', name:'Marinade'},
+    ivqf:{cap:4200, mo:350, col:'#e07b39', name:'IVQF'},
+    fur: {cap:4200, mo:350, col:'#7c3aed', name:'Further'}
+  };
+
+  /* ดึงข้อมูลทั้ง 4 products พร้อมกัน */
+  Promise.all(KEYS.map(function(k){
     return fetch(APPS_URL+'?prod='+k)
-      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-      .then(function(parsed){
-        if(parsed.error) throw new Error(parsed.error);
-        if(Array.isArray(parsed)) throw new Error('Apps Script เก่า กรุณาอัพเดท v3');
-        return {key:k, data:parsed};
-      })
-      .catch(function(e){ console.warn('[fetch]',k,e.message); return {key:k, data:null}; });
-  });
+      .then(function(r){ return r.json(); })
+      .then(function(d){ return {k:k, d:d}; })
+      .catch(function(){ return {k:k, d:null}; });
+  })).then(function(all){
 
-  Promise.all(fetches).then(function(results){
-    /* Step 1: update DATA ทั้งหมดก่อน */
-    var ok = 0;
-    results.forEach(function(r){
-      if(!r.data) return;
-      ok++;
-      var key    = r.key;
-      var parsed = r.data;
+    /* รวมข้อมูลทุก product เข้า custData */
+    /* custData[custKey] = {ytr:{c26,c25,c24,f26}, mar:..., ivqf:..., fur:...} */
+    var custData = {};
+    var prodTotals = {};
 
-      /* update PROD สำหรับ chart */
-      if(window.PROD && window.PROD[key]){
-        PROD[key].d24 = parsed.d24;
-        PROD[key].d25 = parsed.d25;
-        PROD[key].d26 = parsed.d26;
+    all.forEach(function(item){
+      if(!item.d || item.d.error) return;
+      var k  = item.k;
+      var d  = item.d;
+      prodTotals[k] = {
+        d24: d.d24||[], d25: d.d25||[], d26: d.d26||[], fu26: d.fu26||[]
+      };
+      if(d.byCustomer){
+        Object.keys(d.byCustomer).forEach(function(ck){
+          if(!custData[ck]) custData[ck] = {};
+          custData[ck][k] = d.byCustomer[ck];
+        });
       }
-      if(window.MONTHLY_DATA && window.MONTHLY_DATA[key]){
-        MONTHLY_DATA[key]['2024'] = parsed.d24;
-        MONTHLY_DATA[key]['2025'] = parsed.d25;
-        MONTHLY_DATA[key]['2026'] = parsed.d26;
-      }
+    });
 
-      /* update DATA per customer */
-      var prodNameMap = {ytr:'YTR', mar:'Marinade', ivqf:'IVQF', fur:'Further'};
-      var prodName = prodNameMap[key];
-      if(parsed.byCustomer){
-        Object.keys(parsed.byCustomer).forEach(function(ck){
-          if(!window.DATA || !DATA[ck]) return;
-          var bc = parsed.byCustomer[ck];
-          if(!DATA[ck].status) DATA[ck].status = {};
-          if(!DATA[ck].status[key]) DATA[ck].status[key]={c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:'none'};
-          DATA[ck].status[key].c  = Math.round(bc.c26||0);
-          DATA[ck].status[key].f  = Math.round(bc.f26||0);
-          DATA[ck].status[key].y4 = Math.round(bc.c24||0);
-          DATA[ck].status[key].y5 = Math.round(bc.c25||0);
+    /* อัพเดท Summary Cards */
+    var cards = document.querySelectorAll('.oc');
+    var labelMap = {ytr:'YTR — 100T/mo',mar:'Marinade — 380T/mo',ivqf:'IVQF — 350T/mo',fur:'Further — 350T/mo'};
+    KEYS.forEach(function(k,i){
+      var pt = prodTotals[k];
+      if(!pt || !cards[i]) return;
+      var tot = Math.round(pt.d26.reduce(function(a,b){return a+b;},0));
+      var cfg = CFG[k];
+      var pct = (tot/cfg.cap*100).toFixed(1);
+      var fw  = Math.min(parseFloat(pct),100).toFixed(1);
+      cards[i].innerHTML =
+        '<div class="ol">'+labelMap[k]+'</div>'
+        +'<div class="ov" style="color:'+cfg.col+'">'+tot.toLocaleString()+'T</div>'
+        +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
+        +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.col+'"></div></div>';
+    });
+
+    /* อัพเดท Trend Charts (PROD object) */
+    KEYS.forEach(function(k){
+      var pt = prodTotals[k];
+      if(!pt) return;
+      if(window.PROD && PROD[k]){
+        PROD[k].d24 = pt.d24; PROD[k].d25 = pt.d25; PROD[k].d26 = pt.d26;
+      }
+      if(window.MONTHLY_DATA && MONTHLY_DATA[k]){
+        MONTHLY_DATA[k]['2024']=pt.d24; MONTHLY_DATA[k]['2025']=pt.d25; MONTHLY_DATA[k]['2026']=pt.d26;
+      }
+    });
+    try{ initTrendCharts(); }catch(e){}
+    try{ var ov=document.getElementById('ov-combined'); if(ov){ov._done=false; makeOvCombined();} }catch(e){}
+
+    /* อัพเดท Customer Panels โดยตรง */
+    Object.keys(custData).forEach(function(ck){
+      var panel = document.getElementById('panel-'+ck);
+      if(!panel) return;
+
+      var cd = custData[ck]; /* {ytr:{c24,c25,c26,f26}, mar:..., ...} */
+
+      /* อัพเดท status cards ในแต่ละ panel */
+      KEYS.forEach(function(k){
+        var bc  = cd[k];
+        if(!bc) return;
+        var cfg = CFG[k];
+        var c26 = Math.round(bc.c26||0);
+        var c25 = Math.round(bc.c25||0);
+        var c24 = Math.round(bc.c24||0);
+        var f26 = Math.round(bc.f26||0);
+        var moCap = cfg.mo;
+        var moAct = c26>0?Math.round(c26/12):0;
+        var pct   = moCap>0?Math.min(Math.round(moAct/moCap*100),100):0;
+        var yoy   = c26-c25;
+        var arrC  = yoy>0?'#059669':yoy<0?'#dc2626':'#9e9a94';
+        var arrS  = yoy>0?'↑+'+yoy:yoy<0?'↓'+yoy:'→';
+        var pipeline = f26;
+
+        /* หา status card ของ product นี้ใน panel */
+        var statusCards = panel.querySelectorAll('[data-prod]');
+        statusCards.forEach(function(sc){
+          if(sc.getAttribute('data-prod')!==k) return;
+          /* อัพเดทตัวเลข */
+          var elC = sc.querySelector('[data-field="c26"]');
+          var elPct = sc.querySelector('[data-field="pct"]');
+          var elBar = sc.querySelector('[data-field="bar"]');
+          var elPipe = sc.querySelector('[data-field="pipe"]');
+          var elYoy = sc.querySelector('[data-field="yoy"]');
+          var elY24 = sc.querySelector('[data-field="y24"]');
+          var elY25 = sc.querySelector('[data-field="y25"]');
+          var maxY = Math.max(c24,c25,c26,1);
+
+          if(elC){ elC.textContent = c26>0?c26+'T':'—'; elC.style.color=c26>0?cfg.col:'#c8d5e8'; }
+          if(elPct){ elPct.textContent = pct+'% of '+moCap+'T/mo'; }
+          if(elBar){ elBar.style.width=pct+'%'; }
+          if(elPipe){ elPipe.textContent = pipeline>0?'+'+pipeline+'T':''; elPipe.style.display=pipeline>0?'':'none'; }
+          if(elYoy){ elYoy.textContent = (c26>0||c25>0)?arrS+'T':''; elYoy.style.color=arrC; }
+          if(elY24){
+            var w24=maxY>0?Math.round(c24/maxY*100):0;
+            elY24.textContent=c24>0?c24+'T':'—';
+            var bar24=sc.querySelector('[data-bar="y24"]');
+            if(bar24) bar24.style.width=w24+'%';
+          }
+          if(elY25){
+            var w25=maxY>0?Math.round(c25/maxY*100):0;
+            elY25.textContent=c25>0?c25+'T':'—';
+            var bar25=sc.querySelector('[data-bar="y25"]');
+            if(bar25) bar25.style.width=w25+'%';
+          }
+          /* update bar '26 */
+          var w26=maxY>0?Math.round(c26/maxY*100):0;
+          var bar26=sc.querySelector('[data-bar="y26"]');
+          if(bar26) bar26.style.width=w26+'%';
+        });
+
+        /* อัพเดท DATA object ด้วย สำหรับ donut */
+        if(window.DATA && DATA[ck]){
+          if(!DATA[ck].status) DATA[ck].status={};
+          if(!DATA[ck].status[k]) DATA[ck].status[k]={c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:'none'};
+          DATA[ck].status[k].c  = c26;
+          DATA[ck].status[k].f  = f26;
+          DATA[ck].status[k].y4 = c24;
+          DATA[ck].status[k].y5 = c25;
           if(DATA[ck].donuts){
-            DATA[ck].donuts.forEach(function(d){
-              if(d.name===prodName) d.act = Math.round(bc.c26||0);
+            DATA[ck].donuts.forEach(function(dn){
+              if(dn.name===cfg.name) dn.act=c26;
             });
           }
-        });
-      }
-
-      /* update summary cards */
-      var total26 = Math.round((parsed.d26||[]).reduce(function(a,b){return a+b;},0));
-      var cfg = CFG_LS[key];
-      var pct = (total26/cfg.cap*100).toFixed(1);
-      var fw  = Math.min(parseFloat(pct),100).toFixed(1);
-      var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
-      var cards  = document.querySelectorAll('.oc');
-      var idx    = keyMap[key];
-      var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
-      if(cards[idx]){
-        cards[idx].innerHTML =
-          '<div class="ol">'+labelMap[key]+'</div>'
-          +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
-          +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
-          +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.cssVar+'"></div></div>';
-      }
-    });
-
-    if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
-
-    if(ok === 0){
-      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script'; msg.style.color='var(--red)'; }
-      return;
-    }
-
-    /* Step 2: timestamp */
-    var now = new Date();
-    var nowStr = now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    if(ts)  ts.textContent = nowStr;
-    if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
-
-    /* Step 3: rebuild charts ด้วยข้อมูลใหม่ */
-    try{ if(window.buildAllTrends) buildAllTrends(); }catch(e){}
-    try{ initTrendCharts(); }catch(e){ console.warn('initTrendCharts:',e.message); }
-    try{
-      var ovCtx = document.getElementById('ov-combined');
-      if(ovCtx){ ovCtx._done=false; if(window.makeOvCombined) makeOvCombined(); }
-    }catch(e){}
-
-    /* Step 4: rebuild ALL panels (DATA อัพแล้วใน Step 1) */
-    var custKeys = Object.keys(window.DATA||{});
-    custKeys.forEach(function(ck){
-      var el = document.getElementById('panel-'+ck);
-      if(el && window.buildPanel) try{ buildPanel(ck); }catch(e){}
-    });
-
-    /* Step 5: redraw donuts หลัง DOM settle */
-    setTimeout(function(){
-      custKeys.forEach(function(ck){
-        try{ if(window.drawDonuts) drawDonuts(ck); }catch(e){}
+        }
       });
-    }, 100);
 
-    /* Step 6: update sidebar counts */
-    document.querySelectorAll('.ni').forEach(function(ni){
-      var nn = ni.querySelector('.nn');
-      var nv = ni.querySelector('.nv');
-      if(!nn||!nv) return;
-      var custLabel = nn.textContent.trim();
-      var ck = CUST_KEY_MAP[custLabel]||null;
-      if(ck && window.DATA && DATA[ck] && DATA[ck].status){
-        var tot=0;
-        ['ytr','mar','ivqf','fur'].forEach(function(p){
-          if(DATA[ck].status[p]) tot+=DATA[ck].status[p].c||0;
-        });
-        if(tot>0) nv.textContent=tot+'T';
-      }
+      /* redraw donuts */
+      setTimeout(function(){ try{ if(window.drawDonuts) drawDonuts(ck); }catch(e){} }, 80);
+
+      /* อัพเดท stats[0] (Confirmed YTD) */
+      var totalC = KEYS.reduce(function(acc,k){
+        return acc + (cd[k]?Math.round(cd[k].c26||0):0);
+      },0);
+      var statEl = panel.querySelector('.sv');
+      if(statEl && totalC>0) statEl.textContent = totalC+'T';
     });
+
+    /* Sidebar counts */
+    document.querySelectorAll('.ni').forEach(function(ni){
+      var nn=ni.querySelector('.nn'); var nv=ni.querySelector('.nv');
+      if(!nn||!nv) return;
+      var ck = CUST_KEY_MAP[nn.textContent.trim()]||null;
+      if(!ck||!custData[ck]) return;
+      var tot = KEYS.reduce(function(acc,k){ return acc+(custData[ck][k]?Math.round(custData[ck][k].c26||0):0); },0);
+      if(tot>0) nv.textContent=tot+'T';
+    });
+
+    /* Timestamp */
+    if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
+    var now=new Date();
+    var nowStr=now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    if(ts) ts.textContent=nowStr;
+    if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
   });
 }
 
