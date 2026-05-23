@@ -1674,6 +1674,7 @@ function applyLiveData(key, parsed){
       DATA[ck].status[key].f  = Math.round(bc.f26||0);
       DATA[ck].status[key].y4 = Math.round(bc.c24||0);
       DATA[ck].status[key].y5 = Math.round(bc.c25||0);
+      console.log('[apply] '+ck+'.'+key+' = c26:'+Math.round(bc.c26||0)+'T c25:'+Math.round(bc.c25||0)+'T');
       /* donuts */
       if(DATA[ck].donuts){
         DATA[ck].donuts.forEach(function(d){
@@ -1758,14 +1759,25 @@ function liveLoad(){
       var ovCtx = document.getElementById('ov-combined');
       if(ovCtx){ ovCtx._done=false; if(window.makeOvCombined) makeOvCombined(); }
 
-      /* Re-render ALL customer panels */
-      Object.keys(window.DATA||{}).forEach(function(ck){
-        var existing = document.getElementById('panel-'+ck);
-        if(existing && window.buildPanel){
-          buildPanel(ck);
-          requestAnimationFrame(function(){ if(window.drawDonuts) drawDonuts(ck); });
+      /* Re-render ALL customer panels — ใช้ IIFE แก้ closure bug */
+      (function(){
+        var keys = Object.keys(window.DATA||{});
+        function rebuildOne(ck){
+          var existing = document.getElementById('panel-'+ck);
+          if(existing && window.buildPanel){
+            buildPanel(ck);
+          }
         }
-      });
+        function redrawOne(ck){
+          if(window.drawDonuts) drawDonuts(ck);
+        }
+        /* rebuild HTML ทั้งหมดก่อน */
+        keys.forEach(function(ck){ rebuildOne(ck); });
+        /* draw donuts หลัง DOM settle */
+        setTimeout(function(){
+          keys.forEach(function(ck){ redrawOne(ck); });
+        }, 50);
+      })();
 
       /* Update sidebar counts */
       document.querySelectorAll('.ni').forEach(function(ni){
