@@ -1637,99 +1637,61 @@ var CUST_KEY_MAP = {
   'OKAYA':             'okaya_kan',
 };
 
-/* ── ENHANCED SHEET PARSER — extract per-customer breakdown ── */
-function parseSheetLS(rows){
-  var d24=new Array(12).fill(0), d25=new Array(12).fill(0), d26=new Array(12).fill(0);
-  var fu26=new Array(12).fill(0);
-  var byCustomer = {}; /* custKey → {c24,c25,c26,f26} */
+/* ── LIVE DATA: Apply pre-parsed response from Apps Script ── */
 
-  var hdr = -1;
-  for(var i=0; i<Math.min(rows.length,8); i++){
-    if(String(rows[i][0]||'').trim().toUpperCase()==='STATUS'){ hdr=i; break; }
-  }
-  if(hdr<0) return {d24:d24,d25:d25,d26:d26,fu26:fu26,byCustomer:byCustomer};
-
-  for(var i=hdr+1; i<rows.length; i++){
-    var row=rows[i]; if(!row||row.length<6) continue;
-    var st=String(row[0]||'').trim();
-    if(!st) continue;
-    var isC=st==='Confirmed', isFU=st==='Follow up', isNPD=st.indexOf('NPD')===0;
-    if(!isC&&!isFU&&!isNPD) continue;
-
-    /* customer name is col 2 */
-    var custRaw = String(row[2]||'').trim();
-    /* normalize: strip sub-company in parens for matching */
-    var custNorm = custRaw.replace(/\s*\([^)]*\)\s*/g,' ').trim();
-    var custKey = CUST_KEY_MAP[custRaw] || CUST_KEY_MAP[custNorm] || null;
-
-    var rowC24=0,rowC25=0,rowC26=0,rowF26=0;
-    for(var m=0; m<12; m++){
-      var v24=parseFloat(String(row[5+m]||'').replace(/,/g,''))||0;
-      var v25=parseFloat(String(row[17+m]||'').replace(/,/g,''))||0;
-      var v26=parseFloat(String(row[29+m]||'').replace(/,/g,''))||0;
-      if(isC){
-        d24[m]+=v24; d25[m]+=v25; d26[m]+=v26;
-        rowC24+=v24; rowC25+=v25; rowC26+=v26;
-      } else if(isFU||isNPD){
-        fu26[m]+=v26; rowF26+=v26;
-      }
-    }
-
-    /* accumulate per-customer */
-    if(custKey){
-      if(!byCustomer[custKey]) byCustomer[custKey]={c24:0,c25:0,c26:0,f26:0};
-      if(isC){ byCustomer[custKey].c24+=rowC24; byCustomer[custKey].c25+=rowC25; byCustomer[custKey].c26+=rowC26; }
-      else    { byCustomer[custKey].f26+=rowF26; }
-    }
-  }
-  return {d24:d24, d25:d25, d26:d26, fu26:fu26, byCustomer:byCustomer};
-}
-
-/* ── HELPERS ── */
-function sumArr(a){ var s=0; for(var i=0;i<a.length;i++) s+=a[i]; return s; }
-
-/* ── APPLY LIVE DATA TO ALL UI COMPONENTS ── */
 function applyLiveData(key, parsed){
-  /* 1. Update PROD object (trend charts) */
+  /* parsed = {d24, d25, d26, fu26, byCustomer, debug} — already summed server-side */
+
+  /* 1. Trend charts */
   if(window.PROD && window.PROD[key]){
     PROD[key].d24 = parsed.d24;
     PROD[key].d25 = parsed.d25;
     PROD[key].d26 = parsed.d26;
   }
-  /* 2. Update _PROD_OV (overview combined chart) */
+  /* 2. Overview combined chart */
   if(window._PROD_OV && window._PROD_OV[key]){
     _PROD_OV[key].d24 = parsed.d24;
     _PROD_OV[key].d25 = parsed.d25;
     _PROD_OV[key].d26 = parsed.d26;
   }
-  /* 3. Update MONTHLY_DATA (SVG trend section) */
+  /* 3. SVG monthly data */
   if(window.MONTHLY_DATA && window.MONTHLY_DATA[key]){
     MONTHLY_DATA[key]['2024'] = parsed.d24;
     MONTHLY_DATA[key]['2025'] = parsed.d25;
     MONTHLY_DATA[key]['2026'] = parsed.d26;
   }
-  /* 4. Update per-customer breakdown in DATA */
+  /* 4. Per-customer data + donuts */
+  var prodNameMap = {ytr:'YTR', mar:'Marinade', ivqf:'IVQF', fur:'Further'};
+  var prodName = prodNameMap[key];
   if(parsed.byCustomer){
-    Object.keys(parsed.byCustomer).forEach(function(custKey){
-      if(window.DATA && DATA[custKey] && DATA[custKey].status && DATA[custKey].status[key]){
-        var bc = parsed.byCustomer[custKey];
-        DATA[custKey].status[key].c  = Math.round(bc.c26);
-        DATA[custKey].status[key].f  = Math.round(bc.f26);
-        DATA[custKey].status[key].y4 = Math.round(bc.c24);
-        DATA[custKey].status[key].y5 = Math.round(bc.c25);
+    Object.keys(parsed.byCustomer).forEach(function(ck){
+      if(!window.DATA || !DATA[ck]) return;
+      var bc = parsed.byCustomer[ck];
+      /* status */
+      if(!DATA[ck].status) DATA[ck].status = {};
+      if(!DATA[ck].status[key]) DATA[ck].status[key]={c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:'none'};
+      DATA[ck].status[key].c  = Math.round(bc.c26||0);
+      DATA[ck].status[key].f  = Math.round(bc.f26||0);
+      DATA[ck].status[key].y4 = Math.round(bc.c24||0);
+      DATA[ck].status[key].y5 = Math.round(bc.c25||0);
+      /* donuts */
+      if(DATA[ck].donuts){
+        DATA[ck].donuts.forEach(function(d){
+          if(d.name === prodName) d.act = Math.round(bc.c26||0);
+        });
       }
     });
   }
-  /* 5. Update overview summary cards */
-  var total26 = Math.round(sumArr(parsed.d26));
+  /* 5. Summary cards */
+  var total26 = Math.round((parsed.d26||[]).reduce(function(a,b){return a+b;},0));
   var cfg = CFG_LS[key];
   var pct = (total26/cfg.cap*100).toFixed(1);
   var fw  = Math.min(parseFloat(pct),100).toFixed(1);
   var cards = document.querySelectorAll('.oc');
   var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
   var idx = keyMap[key];
+  var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
   if(cards[idx]){
-    var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
     cards[idx].innerHTML =
       '<div class="ol">'+labelMap[key]+'</div>'
       +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
@@ -1738,18 +1700,44 @@ function applyLiveData(key, parsed){
   }
 }
 
+function isLocalFile(){
+  return window.location.protocol === 'file:';
+}
+
 function liveLoad(){
   var btn = document.getElementById('btn-refresh');
   var msg = document.getElementById('refresh-msg');
   var ts  = document.getElementById('hdr-ts');
+  /* ถ้าเปิดจาก local file — fetch ไม่ได้เพราะ CORS */
+  if(isLocalFile()){
+    if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
+    if(msg){ 
+      msg.innerHTML='⚠️ <strong>เปิดจากไฟล์ local — ดึงข้อมูลไม่ได้</strong><br>'
+               +'กรุณา upload ขึ้น <a href="https://netlify.com" target="_blank" style="color:var(--blu)">Netlify</a> '
+               +'หรือเปิดผ่าน web server';
+      msg.style.color='var(--amb)'; 
+    }
+    return;
+  }
   if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดึงข้อมูล...'; }
-  if(msg){ msg.textContent=''; msg.style.color='var(--t3)'; }
+  if(msg){ msg.textContent=''; }
 
   var fetches = PROD_KEYS_LS.map(function(k){
-    return fetch(APPS_URL+'?prod='+k)
+    return fetch(APPS_URL+'?prod='+k, {mode:'cors'})
       .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-      .then(function(rows){ return {key:k, data:parseSheetLS(rows)}; })
-      .catch(function(e){ console.warn('Failed '+k, e); return {key:k, data:null}; });
+      .then(function(parsed){
+        if(parsed.error) throw new Error(parsed.error);
+        if(Array.isArray(parsed)) throw new Error('Apps Script ยังเป็น v2 — กรุณาอัพเดทเป็น v3');
+        return {key:k, data:parsed};
+      })
+      .catch(function(e){
+        /* CORS error เกิดเมื่อเปิดจาก file:// — ให้แจ้งผู้ใช้ */
+        if(e.message && (e.message.indexOf('Failed to fetch')>=0 || e.message.indexOf('NetworkError')>=0 || e.message.indexOf('CORS')>=0)){
+          if(msg){ msg.textContent='⚠️ กรุณาเปิดผ่าน Netlify ไม่ใช่จากไฟล์ local'; msg.style.color='var(--amb)'; }
+        }
+        console.warn('[liveLoad] '+k+':', e.message);
+        return {key:k, data:null};
+      });
   });
 
   Promise.all(fetches).then(function(results){
@@ -1761,51 +1749,43 @@ function liveLoad(){
     if(ok>0){
       var now = new Date();
       var nowStr = now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      if(ts) ts.textContent = nowStr;
+      if(ts)  ts.textContent  = nowStr;
       if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
 
-      /* Re-render SVG trend section */
-      if(window.buildAllTrends) buildAllTrends();
-
-      /* Re-render Chart.js trend charts */
-      if(window._initTrendCharts) window._initTrendCharts();
-
-      /* Re-render overview combined chart */
+      /* Re-render charts */
+      if(window.buildAllTrends)    buildAllTrends();
+      if(window._initTrendCharts)  window._initTrendCharts();
       var ovCtx = document.getElementById('ov-combined');
       if(ovCtx){ ovCtx._done=false; if(window.makeOvCombined) makeOvCombined(); }
 
-      /* Re-render the currently active customer panel */
-      var activePanel = document.querySelector('.panel.active');
-      if(activePanel){
-        var panelId = activePanel.id; /* e.g. "panel-atago" */
-        var custKey = panelId.replace('panel-','');
-        if(window.DATA && DATA[custKey] && window.buildPanel){
-          buildPanel(custKey);
+      /* Re-render ALL customer panels */
+      Object.keys(window.DATA||{}).forEach(function(ck){
+        var existing = document.getElementById('panel-'+ck);
+        if(existing && window.buildPanel){
+          buildPanel(ck);
+          requestAnimationFrame(function(){ if(window.drawDonuts) drawDonuts(ck); });
         }
-      }
+      });
 
-      /* Update all sidebar customer counts */
+      /* Update sidebar counts */
       document.querySelectorAll('.ni').forEach(function(ni){
         var nn = ni.querySelector('.nn');
         var nv = ni.querySelector('.nv');
-        if(!nn || !nv) return;
+        if(!nn||!nv) return;
         var custLabel = nn.textContent.trim();
-        /* find custKey from label */
         var ck = null;
         Object.keys(CUST_KEY_MAP).forEach(function(k){ if(k===custLabel) ck=CUST_KEY_MAP[k]; });
         if(ck && window.DATA && DATA[ck]){
-          /* sum all confirmed 2026 across all products */
           var tot=0;
           ['ytr','mar','ivqf','fur'].forEach(function(p){
-            if(DATA[ck].status && DATA[ck].status[p]) tot+=DATA[ck].status[p].c||0;
+            if(DATA[ck].status&&DATA[ck].status[p]) tot+=DATA[ck].status[p].c||0;
           });
-          if(tot>0) nv.textContent = tot+'T';
+          if(tot>0) nv.textContent=tot+'T';
         }
       });
 
     } else {
-      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script Deploy'; msg.style.color='var(--red)'; }
-      if(ts) ts.textContent = 'ดึงข้อมูลไม่ได้';
+      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script'; msg.style.color='var(--red)'; }
     }
   });
 }
