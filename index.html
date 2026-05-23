@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Special Products Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f7;
+  --surface:#ffffff;
+  --border:rgba(255,255,255,0.55);
+  --border-hard:#d4dce8;
+  --bl:#e8eef6;
+  --t1:#0f1f3d;--t2:#3d5277;--t3:#8fa3bf;
+  --ytr:#0d9488;--ytr-l:#ccfbf1;
+  --mar:#2563eb;--mar-l:#dbeafe;
+  --ivqf:#e07b39;--ivqf-l:#fff0e6;
+  --fur:#7c3aed;--fur-l:#ede9fe;
+  --red:#c0392b;--red-l:#fde8e6;
+  --amb:#b45309;--amb-l:#fef3c7;
+  --grn:#0d6e4f;--grn-l:#d1fae5;
+  --blu:#1e5799;--blu-l:#d6e8fb;
+  --navy:#0f1f3d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:"IBM Plex Sans Thai",sans-serif;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(34,113,179,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(26,63,111,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 30%, rgba(30,87,153,0.07) 0%, transparent 40%);
+  background-attachment:fixed;
+  color:var(--t1);font-size:13px;min-height:100vh;
+}
+
+/* HEADER — glassmorphism */
+.hdr{
+  background:rgba(255,255,255,0.78);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,0.6);
+  box-shadow:0 2px 20px rgba(15,31,61,0.10),0 1px 4px rgba(15,31,61,0.06);
+  padding:12px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;gap:14px;
+}
+.hdr h1{font-size:14px;font-weight:600;color:var(--navy);}
+.hdr p{font-size:11px;color:var(--t2);margin-top:1px;}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{display:flex;align-items:center;gap:4px;font-size:10px;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:20px;border:1px solid var(--border-hard);background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);}
+.cdot{width:6px;height:6px;border-radius:2px;}
+
+.layout{display:flex;min-height:calc(100vh - 53px);}
+
+/* SIDEBAR — glass */
+.sb{
+  width:210px;flex-shrink:0;
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-right:1px solid rgba(200,215,235,0.6);
+  box-shadow:3px 0 24px rgba(15,31,61,0.10);
+  padding:10px 0 60px;
+  position:sticky;top:53px;height:calc(100vh - 53px);overflow-y:auto;
+}
+.sb::-webkit-scrollbar{width:3px;}.sb::-webkit-scrollbar-thumb{background:var(--border-hard);border-radius:3px;}
+
+.nav-sum{display:flex;align-items:center;gap:7px;padding:8px 12px;margin:4px 6px 8px;cursor:pointer;font-size:12.5px;font-weight:500;border-radius:8px;transition:all .15s;}
+.nav-sum:hover{background:rgba(30,87,153,0.08);}
+.nav-sum.active{background:var(--mar);color:#fff;box-shadow:0 2px 12px rgba(30,87,153,0.3);}
+
+.grp-h{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 4px;cursor:pointer;user-select:none;}
+.grp-h:hover .gl{color:var(--t2);}
+.gl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);}
+.ga{font-size:9px;color:var(--t3);display:inline-block;transition:transform .22s;}.ga.open{transform:rotate(90deg);}
+.grp-items{overflow:hidden;}.grp-items.closed{max-height:0!important;}
+.ni{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;font-size:12px;margin:1px 6px;border-radius:8px;transition:all .12s;}
+.ni:hover{background:rgba(30,87,153,0.07);}
+.ni.active{background:var(--mar);color:#fff;box-shadow:0 2px 10px rgba(30,87,153,0.25);}
+.ni.active .nv{opacity:.65;}
+.nd{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.nn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nv{font-family:"IBM Plex Mono",monospace;font-size:10px;opacity:.5;white-space:nowrap;}
+.sb-div{height:1px;background:var(--border-hard);margin:8px 12px;opacity:0.4;}
+
+/* MAIN */
+.main{flex:1;padding:22px 26px;overflow-x:hidden;min-width:0;}
+.panel{display:none;}.panel.active{display:block;animation:fu .18s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PANEL HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border-hard);}
+.ph-title{font-size:20px;font-weight:600;letter-spacing:-.4px;}
+.ph-sub{font-size:12px;color:var(--t2);margin-top:4px;line-height:1.55;}
+.ph-tags{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;}
+.tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+
+/* STAT BOX */
+.stats-wrap{display:flex;background:#ffffff;border:1px solid #d0dcea;box-shadow:0 4px 16px rgba(15,31,61,0.10),0 1px 4px rgba(15,31,61,0.06);border-radius:14px;overflow:hidden;flex-shrink:0;}
+.sbox{padding:10px 17px;text-align:center;}.sbox+.sbox{border-left:1px solid var(--border-hard);}
+.sv{font-size:20px;font-weight:600;font-family:"IBM Plex Mono",monospace;letter-spacing:-.5px;}
+.sl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+
+/* SECTION LABEL */
+.sec{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin:18px 0 10px;}
+
+/* DONUT GRID */
+.dg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.dc{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 4px 18px rgba(15,31,61,0.10),0 1px 4px rgba(15,31,61,0.05);
+  border-radius:16px;padding:16px;text-align:center;
+  transition:transform .15s,box-shadow .15s;
+}.dc:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(15,31,61,0.14),0 2px 6px rgba(15,31,61,0.07);}
+.dc.dim{opacity:.42;}
+.dc-name{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;}
+.dring{position:relative;width:92px;height:92px;margin:0 auto 11px;}
+.dctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dpct{font-size:17px;font-weight:600;font-family:"IBM Plex Mono",monospace;letter-spacing:-.5px;line-height:1;}
+.dpct-s{font-size:8px;color:var(--t3);margin-top:2px;}
+.dleg{display:flex;flex-direction:column;gap:5px;text-align:left;}
+.dr{display:flex;align-items:center;gap:6px;font-size:10.5px;}
+.dd{width:7px;height:7px;border-radius:2px;flex-shrink:0;}.dlb{color:var(--t2);flex:1;}
+.dv{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:10.5px;}
+
+/* STRATEGY / CHART CARD */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}.sg.one{grid-template-columns:1fr;}
+.sc{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 4px 18px rgba(15,31,61,0.09),0 1px 5px rgba(15,31,61,0.05);
+  border-radius:16px;padding:16px 18px;
+  transition:box-shadow .15s;
+}
+.sc:hover{box-shadow:0 8px 28px rgba(15,31,61,0.13),0 2px 6px rgba(15,31,61,0.06);}
+.sc-t{font-size:12px;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:7px;line-height:1.35;}
+.sc-b{font-size:12px;color:var(--t2);line-height:1.65;}.sc-b strong{color:var(--t1);font-weight:500;}
+
+/* ACTION WIDGET */
+.aw{background:#ffffff;border:1px solid #d0dcea;box-shadow:0 4px 18px rgba(15,31,61,0.09),0 1px 5px rgba(15,31,61,0.05);border-radius:16px;overflow:hidden;}
+.ar{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #f0f4fa;}.ar:last-child{border-bottom:none;}
+.an{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--t3);width:22px;flex-shrink:0;padding-top:1px;}
+.at{font-size:12px;color:var(--t2);line-height:1.55;flex:1;}.at strong{color:var(--t1);font-weight:500;}
+.aw-who{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;flex-shrink:0;align-self:flex-start;margin-top:1px;white-space:nowrap;background:#eef2f7;color:var(--t2);}
+
+/* OVERVIEW GRID */
+.og{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.oc{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 5px 22px rgba(15,31,61,0.10),0 1px 5px rgba(15,31,61,0.06);
+  border-radius:16px;padding:18px;
+  transition:transform .16s,box-shadow .16s;
+}
+.oc:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(15,31,61,0.15),0 2px 8px rgba(15,31,61,0.07);}
+.ol{font-size:10px;color:var(--t2);margin-bottom:5px;font-weight:500;}
+.ov{font-size:23px;font-weight:600;font-family:"IBM Plex Mono",monospace;letter-spacing:-1px;}
+.os{font-size:10px;color:var(--t3);margin-top:3px;}
+.obar{height:5px;background:#eef2f7;border-radius:3px;margin-top:12px;overflow:hidden;}
+.ofill{height:100%;border-radius:3px;}
+
+/* TABLE */
+.gtw{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 4px 18px rgba(15,31,61,0.09),0 1px 5px rgba(15,31,61,0.05);
+  border-radius:16px;overflow:hidden;
+}
+.gtw table{width:100%;border-collapse:collapse;}
+.gtw th{padding:10px 14px;font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;text-align:left;border-bottom:1px solid #e0e8f4;background:#f2f6fb;}
+.gtw td{padding:10px 14px;font-size:12px;border-bottom:1px solid #edf2f8;vertical-align:middle;}
+.gtw tr:last-child td{border-bottom:none;}.gtw tr:hover td{background:#f6f9fd;}
+.gb{display:inline-block;padding:2px 7px;border-radius:5px;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:500;}
+
+/* STATUS GRID */
+.sts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+.sts-card{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 4px 18px rgba(15,31,61,0.09),0 1px 5px rgba(15,31,61,0.05);
+  border-radius:16px;padding:16px;
+  transition:box-shadow .15s;
+}
+.sts-card:hover{box-shadow:0 8px 28px rgba(15,31,61,0.13),0 2px 6px rgba(15,31,61,0.06);}
+.sts-card.dim{opacity:.4;}
+.sts-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sts-prod{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+.pros-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.sts-row{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px;}
+.sts-dot{width:8px;height:8px;border-radius:3px;flex-shrink:0;background:#dce8f8;}.sts-lbl{color:var(--t2);flex:1;}
+.sts-val{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;}.sts-val.z{color:var(--t3);}
+.trend-row{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid #eef2f7;align-items:flex-end;}
+.tyr{text-align:center;flex:1;}.tyr-l{font-size:9px;color:var(--t3);margin-bottom:2px;}
+.tyr-v{font-size:11px;font-weight:600;font-family:"IBM Plex Mono",monospace;}.t-arr{font-size:13px;padding-bottom:2px;}
+
+/* PROSPECT */
+.pros-sec{
+  background:#ffffff;
+  border:1px solid #d0dcea;
+  box-shadow:0 4px 18px rgba(15,31,61,0.09),0 1px 5px rgba(15,31,61,0.05);
+  border-radius:16px;padding:16px 18px;margin-bottom:4px;
+}
+.pros-title{font-size:12px;font-weight:600;margin-bottom:10px;}
+.pros-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pros-item{border-radius:12px;padding:12px 14px;border:1px solid #d0dcea;background:#f6f9fd;box-shadow:0 2px 8px rgba(15,31,61,0.06);}
+.pros-item-name{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.pros-item-score{font-size:12px;font-weight:600;margin-bottom:3px;}
+.pros-item-reason{font-size:10.5px;color:var(--t2);line-height:1.5;}
+
+/* STAT BOX */
+
+/* MODALS / MISC */
+
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <h1>📊 Special Products Dashboard</h1>
+    <p>ตลาดญี่ปุ่น | Live Sync จาก Google Sheets | อัปเดต: <span id="hdr-ts" style="font-weight:600;color:var(--t1)">กำลังโหลด...</span> &nbsp;|&nbsp; ทีม: <strong>NICHA</strong> (ผจก) &nbsp;•&nbsp; NET &nbsp;•&nbsp; KAN &nbsp;•&nbsp; EMMA</p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+    <button id="btn-refresh" onclick="liveLoad()" style="background:var(--mar);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 2px 12px rgba(30,87,153,0.3);">🔄 ดึงข้อมูลใหม่จาก Sheets</button>
+    <div id="refresh-msg" style="font-size:10px;color:var(--t3);text-align:right;max-width:260px;"></div>
+  </div>
+</div>
+<div class="layout">
+<nav class="sb">
+  <div class="nav-sum active" id="nav-overview" onclick="go('overview',this)">&#127968; Summary</div>
+  <div class="nav-sum" id="nav-trends" onclick="go('trends',this)">&#128200; Product Trends</div>
+  <div class="grp-h" onclick="tog('g-star',this)"><span class="gl">&#11088; Star Customers</span><span class="ga open" id="arr-star">&#9658;</span></div>
+  <div class="grp-items" id="g-star">
+    <div class="ni" onclick="go('atago',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">ATAGO</span><span class="nv">592T</span></div>
+    <div class="ni" onclick="go('okaya_asahi',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">OKAYA (ASAHI)</span><span class="nv">449T</span></div>
+    <div class="ni" onclick="go('okaya_marui',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">OKAYA (MARUI)</span><span class="nv">426T</span></div>
+    <div class="ni" onclick="go('okaya_nishifu',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">OKAYA (NISHIFU)</span><span class="nv">112T</span></div>
+    <div class="ni" onclick="go('mienboom',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">MIENBOOM</span><span class="nv">39T</span></div>
+    <div class="ni" onclick="go('umios',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">UMIOS</span><span class="nv">383T</span></div>
+    <div class="ni" onclick="go('okaya_kan',this)"><div class="nd" style="background:#0d9488"></div><span class="nn">OKAYA (Kanematsu)</span><span class="nv">51T</span></div>
+  </div>
+  <div class="grp-h" onclick="tog('g-growth',this)"><span class="gl">&#128309; Growth</span><span class="ga open" id="arr-growth">&#9658;</span></div>
+  <div class="grp-items" id="g-growth">
+    <div class="ni" onclick="go('japan_food',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">JAPAN FOOD</span><span class="nv">266T</span></div>
+    <div class="ni" onclick="go('brand_shokuhan',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">BRAND SHOKUHAN</span><span class="nv">138T</span></div>
+    <div class="ni" onclick="go('red_intel',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">RED INTELLIGENCE</span><span class="nv">85T</span></div>
+    <div class="ni" onclick="go('okaya_hurxley',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">OKAYA (HURXLEY)</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('stq',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">STQ</span><span class="nv">37T</span></div>
+    <div class="ni" onclick="go('tts_tbk',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">TTS (TBK)</span><span class="nv">19T</span></div>
+    <div class="ni" onclick="go('jzi',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">J.Zi (JF)</span><span class="nv">65T</span></div>
+    <div class="ni" onclick="go('j_oversea',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">J OVERSEA</span><span class="nv">28T</span></div>
+    <div class="ni" onclick="go('lean_fresh',this)"><div class="nd" style="background:#2563eb"></div><span class="nn">LEAN AND FRESH</span><span class="nv">17T</span></div>
+  </div>
+  <div class="grp-h" onclick="tog('g-watch',this)"><span class="gl">&#9888;&#65039; Watch</span><span class="ga open" id="arr-watch">&#9658;</span></div>
+  <div class="grp-items" id="g-watch">
+    <div class="ni" onclick="go('mikage',this)"><div class="nd" style="background:#b45309"></div><span class="nn">MIKAGE</span><span class="nv">116T</span></div>
+    <div class="ni" onclick="go('hanwa',this)"><div class="nd" style="background:#b45309"></div><span class="nn">HANWA</span><span class="nv">90T</span></div>
+    <div class="ni" onclick="go('global_vision',this)"><div class="nd" style="background:#b45309"></div><span class="nn">GLOBAL VISION</span><span class="nv">16T</span></div>
+    <div class="ni" onclick="go('fully_win',this)"><div class="nd" style="background:#b45309"></div><span class="nn">FULLY WIN</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('food_union',this)"><div class="nd" style="background:#b45309"></div><span class="nn">FOOD UNION</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('cgc',this)"><div class="nd" style="background:#b45309"></div><span class="nn">CGC</span><span class="nv">6T</span></div>
+    <div class="ni" onclick="go('hopes_food',this)"><div class="nd" style="background:#b45309"></div><span class="nn">HOPES FOOD</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('tts_okura',this)"><div class="nd" style="background:#b45309"></div><span class="nn">TTS (O-kura)</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('mayekawa',this)"><div class="nd" style="background:#9e9a94"></div><span class="nn">MAYEKAWA</span><span class="nv">0T</span></div>
+  </div>
+  <div class="grp-h" onclick="tog('g-activate',this)"><span class="gl">&#128308; Activate</span><span class="ga open" id="arr-activate">&#9658;</span></div>
+  <div class="grp-items" id="g-activate">
+    <div class="ni" onclick="go('malmoto',this)"><div class="nd" style="background:#dc2626"></div><span class="nn">MALMOTO</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('meadowvale',this)"><div class="nd" style="background:#dc2626"></div><span class="nn">MEADOWVALE</span><span class="nv">0T</span></div>
+    <div class="ni" onclick="go('yokorei',this)"><div class="nd" style="background:#dc2626"></div><span class="nn">YOKOREI</span><span class="nv">0T</span></div>
+  </div>
+  <div class="sb-div"></div>
+</nav>
+
+<main class="main" id="main-area">
+<div id="panel-overview" class="panel active">
+  <div class="ph" style="align-items:flex-end">
+    <div>
+      <div class="ph-title">&#3616;&#3634;&#3614;&#3619;&#3623;&#3617; Capacity Utilization 2026</div>
+      <div class="ph-sub">Confirmed &#3618;&#3629;&#3604;&#3586;&#3634;&#3618;&#3611;&#3633;&#3592;&#3592;&#3640;&#3610;&#3633;&#3609; vs &#3585;&#3635;&#3621;&#3633;&#3591;&#3585;&#3634;&#3619;&#3612;&#3621;&#3636;&#3605;&#3626;&#3641;&#3591;&#3626;&#3640;&#3604;&#3605;&#3656;&#3629;&#3611;&#3637;</div>
+    </div>
+  </div>
+  <div class="og">
+    <div class="oc"><div class="ol">YTR &#8212; 100T/mo</div><div class="ov" style="color:var(--ytr)">487T</div><div class="os">Confirmed 2026 | Cap ปี 1,200T (40.6%)</div><div class="obar"><div class="ofill" style="width:40.6%;background:var(--ytr)"></div></div></div>
+    <div class="oc"><div class="ol">Marinade &#8212; 380T/mo</div><div class="ov" style="color:var(--mar)">620T</div><div class="os">Confirmed 2026 | Cap ปี 4,560T (13.6%)</div><div class="obar"><div class="ofill" style="width:13.6%;background:var(--mar)"></div></div></div>
+    <div class="oc"><div class="ol">IVQF &#8212; 350T/mo</div><div class="ov" style="color:var(--ivqf)">1,630T</div><div class="os">Confirmed 2026 | Cap ปี 4,200T (38.8%)</div><div class="obar"><div class="ofill" style="width:38.8%;background:var(--ivqf)"></div></div></div>
+    <div class="oc"><div class="ol">Further &#8212; 350T/mo</div><div class="ov" style="color:var(--fur)">297T</div><div class="os">Confirmed 2026 | Cap ปี 4,200T (7.1%)</div><div class="obar"><div class="ofill" style="width:7.1%;background:var(--fur)"></div></div></div>
+  </div>
+  <div class="sec">Priority Matrix</div>
+  <div class="gtw"><table>
+    <thead><tr><th>#</th><th>&#3621;&#3641;&#3585;&#3588;&#3657;&#3634;</th><th>&#3626;&#3636;&#3609;&#3588;&#3657;&#3634;</th><th>Actual YTD</th><th>&#3648;&#3614;&#3636;&#3656;&#3617;&#3652;&#3604;&#3657;</th><th>&#3627;&#3621;&#3633;&#3585;</th><th>&#3612;&#3641;&#3657;&#3619;&#3633;&#3610;&#3612;&#3636;&#3604;&#3594;&#3629;&#3610;</th></tr></thead>
+    <tbody>
+      <tr><td style="font-family:monospace;font-weight:700;color:var(--red)">1</td><td><strong>JAPAN FOOD</strong></td><td style="color:var(--mar)">Marinade IVQF</td><td style="font-family:monospace">136T</td><td><span class="gb" style="background:var(--grn-l);color:var(--grn)">+600T</span></td><td>NET</td><td>NET</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700;color:var(--red)">2</td><td><strong>BRAND SHOKUHAN</strong></td><td style="color:var(--ytr)">YTR H2</td><td style="font-family:monospace">138T</td><td><span class="gb" style="background:var(--grn-l);color:var(--grn)">+138T</span></td><td>KAN</td><td>KAN</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700;color:var(--amb)">3</td><td><strong>OKAYA NISHIFU</strong></td><td style="color:var(--fur)">Further H2</td><td style="font-family:monospace">94T</td><td><span class="gb" style="background:var(--grn-l);color:var(--grn)">+94T</span></td><td>KAN</td><td>KAN</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700;color:var(--amb)">4</td><td><strong>HANWA</strong></td><td style="color:var(--mar)">Marinade+IVQF</td><td style="font-family:monospace">64T</td><td><span class="gb" style="background:var(--amb-l);color:var(--amb)">+120T</span></td><td>NET</td><td>NET</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700;color:var(--amb)">5</td><td><strong>MIKAGE</strong></td><td style="color:var(--ivqf)">IVQF Recovery</td><td style="font-family:monospace">107T</td><td><span class="gb" style="background:var(--amb-l);color:var(--amb)">+211T</span></td><td>KAN</td><td>ผจก+KAN</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700">6</td><td><strong>ATAGO</strong></td><td style="color:var(--ivqf)">IVQF Q4</td><td style="font-family:monospace">272T</td><td><span class="gb" style="background:var(--grn-l);color:var(--grn)">+150T</span></td><td>KAN</td><td>KAN</td></tr>
+      <tr><td style="font-family:monospace;font-weight:700">7</td><td><strong>OKAYA HURXLEY</strong></td><td style="color:var(--mar)">Marinade AT</td><td style="font-family:monospace">0T</td><td><span class="gb" style="background:var(--grn-l);color:var(--grn)">+168T</span></td><td>KAN</td><td>KAN</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sec" style="margin-top:18px">Monthly Trend — ยอดขายรายเดือน (Confirmed) ปี 2024 / 2025 / 2026</div>
+  <div id="trend-section" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+
+  <div class="sec" style="margin-top:18px;">ภาพรวมทุกสินค้า — ยอดรวมรายปี</div>
+  <div class="sc" style="padding:14px 16px;margin-bottom:4px;">
+    <div style="position:relative;height:240px;">
+      <canvas id="ov-combined" role="img" aria-label="All products annual totals 2024-2026">All products: YTR 456/800/487T, Marinade 897/1122/620T, IVQF 1839/1839/1630T, Further 948/248/297T</canvas>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:22px">&#128293; Top 5 ลูกค้าโฟกัสเร่งด่วน — แยกรายสินค้า</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+    <!-- YTR -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="background:var(--ytr);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:600;color:#fff;letter-spacing:.05em;">YTR — TOP 5 FOCUS</span>
+        <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.7);">เป้า 100T/mo</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:var(--bg);">
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">#</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">ลูกค้า</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2025</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2026</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">เหตุผล</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">1</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">BRAND SHOKUHAN</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">168T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ytr);font-weight:600;">138T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">ซื้อแค่ H1 ทุกปี — H2 ว่างทุกครั้ง ต้องปิด Forecast ก่อน Jun 🔥</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">2</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (ASAHI)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">311T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ytr);font-weight:600;">100T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Anchor ใหญ่สุด แต่ Follow up 73T + NPD 45T รอปิด — ต้องเร่ง</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">3</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">UMIOS</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">168T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ytr);font-weight:600;">187T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">เติบโต +11% Follow up 145T — ขยาย SKU เพิ่ม Oct–Dec</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">4</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">JAPAN FOOD</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">100T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--red);font-weight:600;">0T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">2025 ซื้อ 100T แต่ 2026 หายไป — ต้องถามสาเหตุด่วน (RYUHO)</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;font-size:11px;">5</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (Kanematsu)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">0T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ytr);font-weight:600;">40T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">ลูกค้าใหม่ย้ายมาจาก Mayekawa — เร่ง Confirm H2 + ขยาย SKU</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Marinade -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="background:var(--mar);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:600;color:#fff;letter-spacing:.05em;">MARINADE — TOP 5 FOCUS</span>
+        <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.7);">เป้า 380T/mo</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:var(--bg);">
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">#</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">ลูกค้า</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2025</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2026</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">เหตุผล</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">1</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">JAPAN FOOD</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">85T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--mar);font-weight:600;">136T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Follow up 774T สูงสุด! TAK-186-1 + T-20 SEJ — ปิดได้ = game changer 🔥</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">2</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (ASAHI)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">434T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--mar);font-weight:600;">331T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Anchor หลัก ลดจาก 434T แต่ Follow up 87T รอปิด UC Tsukune + HURXLEY</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">3</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (HURXLEY)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">144T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--red);font-weight:600;">0T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">หายทั้งปี! Pipeline 168T (Jul+Aug+Sep) — ต้องส่ง Offer ด่วนก่อน Jun</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">4</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">HANWA</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">209T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--red);font-weight:600;">64T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">ลดฮวบ -69% Follow up 195T + NPD 458T — แก้ Packaging แล้วเร่งปิด</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">5</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">ATAGO</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">144T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--mar);font-weight:600;">48T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Marinade เพิ่งเริ่ม (Mar/Apr) Follow up 144T — ขยาย H2 24T→48T/mo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- IVQF -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="background:var(--ivqf);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:600;color:#fff;letter-spacing:.05em;">IVQF — TOP 5 FOCUS</span>
+        <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.7);">เป้า 350T/mo</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:var(--bg);">
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">#</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">ลูกค้า</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2025</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2026</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">เหตุผล</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">1</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">ATAGO</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">463T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ivqf);font-weight:600;">544T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">เติบโต +18% ต่อเนื่อง Follow up 82T — ต้องปิด Q4 ก่อน Sep ด่วน 🔥</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">2</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (MARUI)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">333T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ivqf);font-weight:600;">366T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Anchor ที่เติบโตทุกปี (216→333→366T) — Lock contract ยาวได้เลย</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">3</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">MIKAGE</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">61T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ivqf);font-weight:600;">107T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">+75% แต่ Follow up 112T รอ Supply — Reserve Capacity Q3 ด่วน!</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">4</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">JAPAN FOOD</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">13T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ivqf);font-weight:600;">100T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">New! +670% Follow up 750T (TAK-186-1 Breaded) — ปิดได้ขึ้นอันดับ 1</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">5</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">UMIOS</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">161T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--ivqf);font-weight:600;">196T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">เติบโต +22% Follow up 122T — เร่ง Confirm H2 BLK 3 sizes Oct–Dec</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Further -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="background:var(--fur);padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:600;color:#fff;letter-spacing:.05em;">FURTHER — TOP 5 FOCUS</span>
+        <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.7);">เป้า 350T/mo</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:var(--bg);">
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">#</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">ลูกค้า</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2025</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:right;font-weight:600;letter-spacing:.05em;">2026</th>
+          <th style="padding:6px 10px;font-size:9px;color:var(--t3);text-align:left;font-weight:600;letter-spacing:.05em;">เหตุผล</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">1</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (NISHIFU)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">7T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--fur);font-weight:600;">112T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">ทะยาน +1500%! Follow up 9T H2 — ลูกค้าใหม่ที่เติบโตเร็วที่สุด 🔥</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--red);font-size:11px;">2</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">OKAYA (MARUI)</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">59T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--fur);font-weight:600;">60T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Anchor สม่ำเสมอ (75→59→60T) — เสนอ Monthly Long Contract เพื่อ Lock</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">3</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">STQ</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">29T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--fur);font-weight:600;">29T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">Follow up 87T + NPD 101T — Roasted 2JW Nov Launch ต้อง Confirm Volume</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;color:var(--amb);font-size:11px;">4</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">JAPAN FOOD</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">68T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--fur);font-weight:600;">30T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">ลด -56% Follow up 210T (RX-08 + Grilled series) — ต้องเร่ง Meeting</td>
+          </tr>
+          <tr style="border-top:1px solid var(--bl);">
+            <td style="padding:7px 10px;font-family:monospace;font-weight:700;font-size:11px;">5</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;">MIENBOOM</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--t2);">3T</td>
+            <td style="padding:7px 10px;font-family:monospace;font-size:11px;text-align:right;color:var(--fur);font-weight:600;">14T</td>
+            <td style="padding:7px 10px;font-size:10px;color:var(--t2);">เติบโต +367%! Sesame Wings — Follow up 6T H2 รักษา Momentum</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="panel-trends" class="panel">
+  <div class="ph" style="align-items:flex-end">
+    <div>
+      <div class="ph-title">Product Trends — 2024 · 2025 · 2026</div>
+      <div class="ph-sub">ยอดขาย Confirmed รายเดือน ทุกสินค้า | ข้อมูลจริงจาก Google Sheets (Jan 2024 – Dec 2026)</div>
+    </div>
+  </div>
+
+  <!-- Summary insight bar -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+    <div style="background:var(--ytr-l);border:1px solid var(--ytr);border-radius:10px;padding:12px 14px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ytr);margin-bottom:6px;">YTR</div>
+      <div style="font-size:13px;font-weight:600;color:var(--ytr);">&#8599; ขาขึ้นต่อเนื่อง</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:4px;line-height:1.55;">2024→2025 +75%<br>H2 ว่างทุกปี — ต้องปิด Forecast ก่อน Jun</div>
+    </div>
+    <div style="background:var(--mar-l);border:1px solid var(--mar);border-radius:10px;padding:12px 14px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mar);margin-bottom:6px;">Marinade</div>
+      <div style="font-size:13px;font-weight:600;color:var(--mar);">&#8597; H1 แรง / H2 ลด</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:4px;line-height:1.55;">Mar–May 2026 พุ่ง<br>H2 Confirm แค่ 24T/mo — มีช่องอีกมาก</div>
+    </div>
+    <div style="background:var(--ivqf-l);border:1px solid var(--ivqf);border-radius:10px;padding:12px 14px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ivqf);margin-bottom:6px;">IVQF</div>
+      <div style="font-size:13px;font-weight:600;color:var(--ivqf);">&#8594; Flat — H2 2026 ลด</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:4px;line-height:1.55;">2025 Sep สูงสุด 260T<br>2026 H2 Supply issue ต้องระวัง</div>
+    </div>
+    <div style="background:var(--fur-l);border:1px solid var(--fur);border-radius:10px;padding:12px 14px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fur);margin-bottom:6px;">Further</div>
+      <div style="font-size:13px;font-weight:600;color:var(--fur);">&#8599; ฟื้นตัว 2026</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:4px;line-height:1.55;">2025 ร่วง -74% (MALMOTO หาย)<br>NISHIFU ใหม่ดันยอดกลับขึ้น</div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div style="display:flex;gap:18px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+    <span style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);">Legend</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);"><span style="width:22px;height:8px;border-radius:2px;background:rgba(0,0,0,0.12);display:inline-block;"></span>2024</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);"><span style="width:22px;height:8px;border-radius:2px;background:rgba(0,0,0,0.35);display:inline-block;"></span>2025</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);"><span style="width:22px;height:8px;border-radius:2px;background:rgba(0,0,0,0.8);display:inline-block;"></span>2026</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);"><span style="width:22px;height:2px;border-top:2px dashed #f59e0b;display:inline-block;"></span>เป้า/เดือน</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);"><span style="width:22px;height:2px;border-top:1.5px dashed #bbb;display:inline-block;"></span>แนวโน้ม</span>
+  </div>
+
+  <!-- Charts 2x2 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+    <div class="sc" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ytr);">YTR — Yakitori</div>
+        <div style="display:flex;gap:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);">
+          <span>2024:<strong style="color:var(--t2)"> 456T</strong></span>
+          <span>2025:<strong style="color:var(--ytr)"> 800T</strong></span>
+          <span>2026:<strong style="color:var(--ytr)"> 487T</strong></span>
+        </div>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="tc-ytr" role="img" aria-label="YTR monthly sales 2024-2026">YTR: 2024 total 456T, 2025 total 800T (+75%), 2026 YTD 487T</canvas></div>
+    </div>
+
+    <div class="sc" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--mar);">Marinade</div>
+        <div style="display:flex;gap:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);">
+          <span>2024:<strong style="color:var(--t2)"> 897T</strong></span>
+          <span>2025:<strong style="color:var(--mar)"> 1,122T</strong></span>
+          <span>2026:<strong style="color:var(--mar)"> 620T</strong></span>
+        </div>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="tc-mar" role="img" aria-label="Marinade monthly sales 2024-2026">Marinade: 2024 total 897T, 2025 total 1122T, 2026 YTD 620T</canvas></div>
+    </div>
+
+    <div class="sc" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ivqf);">IVQF</div>
+        <div style="display:flex;gap:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);">
+          <span>2024:<strong style="color:var(--t2)"> 1,838T</strong></span>
+          <span>2025:<strong style="color:var(--t2)"> 1,839T</strong></span>
+          <span>2026:<strong style="color:var(--ivqf)"> 1,630T</strong></span>
+        </div>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="tc-ivqf" role="img" aria-label="IVQF monthly sales 2024-2026">IVQF: 2024 total 1839T, 2025 total 1839T (flat), 2026 YTD 1630T</canvas></div>
+    </div>
+
+    <div class="sc" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--fur);">Further</div>
+        <div style="display:flex;gap:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);">
+          <span>2024:<strong style="color:var(--t2)"> 949T</strong></span>
+          <span>2025:<strong style="color:var(--red)"> 248T</strong></span>
+          <span>2026:<strong style="color:var(--fur)"> 297T</strong> &#8599;</span>
+        </div>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="tc-fur" role="img" aria-label="Further monthly sales 2024-2026">Further: 2024 total 948T (MALMOTO), 2025 total 248T (-74%), 2026 recovering 297T YTD</canvas></div>
+    </div>
+
+  </div>
+
+  <!-- Combined all-products chart -->
+  <div class="sec" style="margin-top:20px;">ภาพรวมทุกสินค้า — ยอดรวมรายปี</div>
+  <div class="sc" style="padding:14px 16px;">
+    <div style="position:relative;height:220px;"><canvas id="tc-combined" role="img" aria-label="All products annual totals 2024-2026">All products combined: 2024 total 4141T, 2025 total 4004T, 2026 YTD 2948T</canvas></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var LABELS36 = MONTHS.map(function(m){return m+' 24';}).concat(MONTHS.map(function(m){return m+' 25';})).concat(MONTHS.map(function(m){return m+' 26';}));
+
+var PROD = {
+  ytr:{
+    d24:[24,32,43,41,36,60,58,12,23,12,85,30],
+    d25:[48,106,91,65,67,82,48,72,80,39,37,65],
+    d26:[36,67,90,91,83,15,39,38,0,17,11,0],
+    cap:100, col:'#0d9488'
+  },
+  mar:{
+    d24:[90,24,65,24,96,108,87,24,136,92,68,83],
+    d25:[24,96,68,86,72,34,148,114,140,141,88,111],
+    d26:[12,19,121,115,93,94,46,24,24,24,24,24],
+    cap:380, col:'#2563eb'
+  },
+  ivqf:{
+    d24:[132,116,133,138,102,161,203,186,169,147,184,168],
+    d25:[66,82,155,167,89,103,190,169,260,159,235,164],
+    d26:[55,46,246,213,178,263,231,129,88,115,33,33],
+    cap:350, col:'#e07b39'
+  },
+  fur:{
+    d24:[97,76,61,61,94,61,61,61,112,111,62,91],
+    d25:[15,7,40,0,30,20,15,7,33,21,30,30],
+    d26:[42,20,49,41,52,40,15,15,8,0,15,0],
+    cap:350, col:'#7c3aed'
+  }
+};
+
+function ha(hex,a){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
+
+function trendLine(data){
+  var pts=data.map(function(v,i){return {x:i,y:v};}).filter(function(p){return p.y>0;});
+  if(pts.length<2) return new Array(12).fill(null);
+  var n=pts.length,sx=0,sy=0,sxy=0,sx2=0;
+  pts.forEach(function(p){sx+=p.x;sy+=p.y;sxy+=p.x*p.y;sx2+=p.x*p.x;});
+  var m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+  return Array.from({length:12},function(_,i){return Math.max(0,Math.round(m*i+b));});
+}
+
+function makeProductChart(canvasId, key){
+  var ctx=document.getElementById(canvasId);
+  if(!ctx) return;
+  var d=PROD[key];
+  var nulls12=new Array(12).fill(null);
+  var capLine=new Array(36).fill(d.cap);
+  var trendData=trendLine(d.d24).concat(trendLine(d.d25)).concat(trendLine(d.d26).concat(new Array(4).fill(null)).slice(0,12));
+
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:LABELS36,
+      datasets:[
+        {label:'2024',data:d.d24.concat(nulls12).concat(nulls12),backgroundColor:ha(d.col,0.15),borderColor:ha(d.col,0.3),borderWidth:0.5,borderRadius:2,order:4},
+        {label:'2025',data:nulls12.concat(d.d25).concat(nulls12),backgroundColor:ha(d.col,0.42),borderColor:ha(d.col,0.55),borderWidth:0.5,borderRadius:2,order:3},
+        {label:'2026',data:nulls12.concat(nulls12).concat(d.d26),backgroundColor:ha(d.col,0.88),borderColor:d.col,borderWidth:1,borderRadius:2,order:2},
+        {label:'เป้า',data:capLine,type:'line',borderColor:'#f59e0b',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,tension:0,order:0},
+        {label:'แนวโน้ม',data:trendData,type:'line',borderColor:ha(d.col,0.38),borderWidth:1.2,borderDash:[2,4],pointRadius:0,fill:false,tension:0.3,order:1}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:function(items){return items[0].label;},
+        label:function(item){
+          if(item.raw===null) return null;
+          if(item.dataset.label==='เป้า') return 'เป้า: '+item.raw+'T';
+          if(item.dataset.label==='แนวโน้ม') return 'แนวโน้ม: '+Math.round(item.raw)+'T';
+          return item.dataset.label+': '+Math.round(item.raw)+'T';
+        }
+      }}},
+      scales:{
+        x:{ticks:{font:{size:9,family:"'IBM Plex Mono',monospace"},color:'#9e9a94',maxRotation:45,autoSkip:true,maxTicksLimit:18},grid:{color:'rgba(0,0,0,0.04)',lineWidth:0.5}},
+        y:{ticks:{font:{size:9,family:"'IBM Plex Mono',monospace"},color:'#9e9a94',maxTicksLimit:5},grid:{color:'rgba(0,0,0,0.05)',lineWidth:0.5}}
+      }
+    }
+  });
+}
+
+function makeCombinedChart(){
+  var ctx=document.getElementById('tc-combined');
+  if(!ctx) return;
+  var keys=['ytr','mar','ivqf','fur'];
+  var labels=['YTR','Marinade','IVQF','Further'];
+  var colors=['#0d9488','#2563eb','#e07b39','#7c3aed'];
+
+  var d24=[],d25=[],d26=[];
+  keys.forEach(function(k){
+    var p=PROD[k];
+    d24.push(Math.round(p.d24.reduce(function(a,b){return a+b;},0)));
+    d25.push(Math.round(p.d25.reduce(function(a,b){return a+b;},0)));
+    d26.push(Math.round(p.d26.reduce(function(a,b){return a+b;},0)));
+  });
+
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'2024',data:d24,backgroundColor:colors.map(function(c){return ha(c,0.2);}),borderColor:colors.map(function(c){return ha(c,0.4);}),borderWidth:1,borderRadius:3},
+        {label:'2025',data:d25,backgroundColor:colors.map(function(c){return ha(c,0.55);}),borderColor:colors.map(function(c){return ha(c,0.7);}),borderWidth:1,borderRadius:3},
+        {label:'2026 YTD',data:d26,backgroundColor:colors.map(function(c){return ha(c,0.9);}),borderColor:colors,borderWidth:1.5,borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          display:true,
+          position:'top',
+          labels:{font:{size:10},boxWidth:12,boxHeight:8,padding:14,color:'#65625c'}
+        },
+        tooltip:{callbacks:{
+          label:function(item){return item.dataset.label+': '+item.raw.toLocaleString()+'T';}
+        }}
+      },
+      scales:{
+        x:{ticks:{font:{size:11},color:'#65625c'},grid:{display:false}},
+        y:{ticks:{font:{size:9,family:"'IBM Plex Mono',monospace"},color:'#9e9a94',maxTicksLimit:5,callback:function(v){return v.toLocaleString()+'T';}},grid:{color:'rgba(0,0,0,0.05)',lineWidth:0.5}}
+      }
+    }
+  });
+}
+
+function initTrendCharts(){
+  if(!document.getElementById('tc-ytr')) return;
+  makeProductChart('tc-ytr','ytr');
+  makeProductChart('tc-mar','mar');
+  makeProductChart('tc-ivqf','ivqf');
+  makeProductChart('tc-fur','fur');
+  makeCombinedChart();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initTrendCharts);
+} else {
+  initTrendCharts();
+}
+
+window._initTrendCharts = initTrendCharts;
+})();
+</script>
+
+</main>
+</div>
+<script>
+const DATA = {
+  "atago":{
+    tags:[{t:"Star Customer",bg:"var(--grn-l)",c:"var(--grn)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"ATAGO",
+    sub:"IVQF BLK 25-30G + Marinade | KAN | Anchor ลูกค้าซื้อต่อเนื่อง Jan-Jun 2026",
+    stats:[{v:"592T",l:"IVQF+Mar 2026 Conf."},{v:"48T",l:"Marinade/mo",c:"var(--mar)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:24,cap:380,tgt:48,tl:"Target/mo",tv:"48T"},{name:"IVQF",col:"var(--ivqf)",act:45,cap:350,tgt:60,tl:"Target/mo",tv:"60T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"Upsell LT",tv:"New"}],
+    strats:[{i:"📦",t:"IVQF — ต่อสัญญา Q4 + ขยาย SKU",c:"var(--ivqf)",b:"BLK 25-30G avg 49T/mo Jan-Oct<br>🎯 ต่อสัญญา Nov-Dec ก่อน Sep เป้า 60T/mo<br>🎯 เสนอ Inner Fillet / Tenderloin เพิ่ม"},{i:"🥩",t:"Marinade — ขยาย H2 Volume",c:"var(--mar)",b:"Herb Fed BLK 30-40G: Mar/Apr 24T (เพิ่งเริ่ม)<br>🎯 Follow up H2 Jul-Dec ขยาย 48T/mo<br>🎯 เสนอ Miso / Yakiniku flavor เพิ่ม"},{i:"🍢",t:"YTR — นำเสนอครั้งแรก",c:"var(--ytr)",b:"ยังไม่เคยซื้อ YTR เลย<br>🎯 ส่ง Sample Yakitori BLK BBQ Season"}],
+    actions:[{n:"01",t:"ต่อสัญญา IVQF Nov-Dec ก่อน Sep — เป้า 60T/mo",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"Follow up Marinade H2 — ขยาย 24T → 48T/mo",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"03",t:"ส่ง Sample YTR ก่อน Jun — เปิด Category ใหม่",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:48,f:72,no:0,nn:0,y4:168,y5:144,sc:"anchor"},"ivqf":{c:544,f:82,no:0,nn:0,y4:463,y5:463,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "okaya_asahi":{
+    tags:[{t:"Star Stable",bg:"var(--grn-l)",c:"var(--grn)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"},{t:"YTR+Mar+IVQF",bg:"var(--mar-l)",c:"var(--mar)"}],
+    title:"OKAYA (ASAHI)",
+    sub:"YTR + Marinade BX ปิดทั้งปี + IVQF | KAN | ลูกค้า Anchor หลายสินค้า",
+    stats:[{v:"100T",l:"YTR YTD",c:"var(--ytr)"},{v:"449T",l:"Marinade YTD",c:"var(--mar)"},{v:"18T",l:"IVQF YTD",c:"var(--ivqf)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:7,cap:100,tgt:15,tl:"avg active months",tv:"~43T"},{name:"Marinade",col:"var(--mar)",act:51,cap:380,tgt:72,tl:"Target/mo (BX+)",tv:"72T"},{name:"IVQF",col:"var(--ivqf)",act:18,cap:350,tgt:25,tl:"Target/mo",tv:"25T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"Cross-sell",tv:"New"}],
+    strats:[{i:"🍢",t:"YTR — ยอดจริงจาก Sheet",c:"var(--ytr)",b:"Gizzard 35G: Jan/May/Aug/Nov 11.4T each<br>BB Skin F15: Apr/Jul/Nov 14T each<br>Heart Half Cut: Apr/Jul/Nov 3T each<br>BB+Yagen: Feb 3T<br><strong>YTD ~57T</strong>"},{i:"🥩",t:"Marinade — BX ปิดทั้งปี + Tsukune",c:"var(--mar)",b:"BX 1kg x12: Mar 48T, Apr-Dec 24T/mo = 264T<br>Tsukune 85G: Apr 20T / UC Tsukune: Apr 22T / DK: May 24T<br>🎯 UC Tsukune Jul Follow up / HURXLEY AT Jul 48 + Aug 72 + Sep 48"},{i:"📦",t:"IVQF — Inner Fillet + ขยาย SKU",c:"var(--ivqf)",b:"Inner Fillet 45-55G: May 18.2T<br>🎯 เสนอ SKU เพิ่ม BLK หรือ Tenderloin H2"}],
+    actions:[{n:"01",t:"Confirm UC Tsukune Jul 22.5T — Inquiry Mid-Jul 1 FCL",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"Follow up HURXLEY Marinade AT — Jul 48T + Aug 72T + Sep 48T = 168T",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"03",t:"Volume Up BX 24T → 48T/mo — Mar ทำได้ 48T แล้ว",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:112,f:87,no:45,nn:0,y4:168,y5:311,sc:"anchor"},"mar":{c:353,f:82,no:0,nn:0,y4:457,y5:434,sc:"anchor"},"ivqf":{c:41,f:94,no:0,nn:0,y4:154,y5:153,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "okaya_marui":{
+    tags:[{t:"Star Stable",bg:"var(--grn-l)",c:"var(--grn)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"OKAYA (MARUI)",
+    sub:"IVQF BLK + Further Karaage | KAN | ซื้อต่อเนื่องทั้งปี",
+    stats:[{v:"426T",l:"IVQF YTD"},{v:"60T",l:"Further YTD",c:"var(--fur)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:37,cap:350,tgt:50,tl:"Target/mo",tv:"50T"},{name:"Further",col:"var(--fur)",act:15,cap:350,tgt:15,tl:"Target Monthly",tv:"15T/mo"}],
+    strats:[{i:"📦",t:"IVQF — BLK 20-30G ต่อเนื่อง Mar-Dec",c:"var(--ivqf)",b:"avg 38T/mo ต่อเนื่อง<br>🎯 Volume เพิ่มเป็น 50T/mo, Confirm ล่วงหน้า 3 เดือน"},{i:"🍗",t:"Further Karaage — เพิ่มความถี่ Monthly",c:"var(--fur)",b:"Pattern: Mar/May/Jul/Nov (เดือนเว้น)<br>🎯 Long Contract ซื้อทุกเดือน 15T"}],
+    actions:[{n:"01",t:"Confirm Jul/Sep/Nov Karaage ล่วงหน้า — Pattern ชัดเจน",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"เสนอ Further Monthly Long Contract",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:366,f:0,no:0,nn:0,y4:216,y5:333,sc:"anchor"},"fur":{c:60,f:0,no:0,nn:0,y4:75,y5:59,sc:"grow"}}
+  },
+  "okaya_nishifu":{
+    tags:[{t:"H2 ว่าง",bg:"var(--amb-l)",c:"var(--amb)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"OKAYA (NISHIFU)",
+    sub:"Further Fried Chicken Skin | KAN | H1 ปิดครบ — H2 ว่างทุกปี",
+    stats:[{v:"112T",l:"H1 2026 (Jan-Jun)"},{v:"+94T",l:"H2 Target",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Further",col:"var(--fur)",act:19,cap:350,tgt:16,tl:"H2 Target",tv:"+94T"}],
+    strats:[{i:"🍗",t:"Further — ปิด H2 Long Contract ด่วน",c:"var(--fur)",b:"Jan 9T Feb 18T Mar 28T Apr-Jun 18T/mo = 94T H1<br>🎯 เสนอ H2 Jul-Dec ราคาเดิม Volume เดิม → +94T"},{i:"📦",t:"IVQF/Marinade — Cross-sell",c:"var(--ivqf)",b:"ลูกค้า Further แล้ว น่าจะ Open รับสินค้าอื่น<br>🎯 เสนอ IVQF Add-on หลังปิด H2 Further"}],
+    actions:[{n:"01",t:"เสนอ H2 Long Contract ก่อนสิ้น May — ต้องทำก่อน H2",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"Cross-sell IVQF หลังปิด Further H2",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:112,f:112,no:0,nn:0,y4:0,y5:7,sc:"grow"}}
+  },
+  "mienboom":{
+    tags:[{t:"Active",bg:"var(--grn-l)",c:"var(--grn)"},{t:"NICHA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"MIENBOOM",
+    sub:"IVQF หลาย SKU + Further Sesame Wings | NICHA | ซื้อต่อเนื่อง",
+    stats:[{v:"14T",l:"Further YTD"},{v:"18T",l:"IVQF YTD",c:"var(--ivqf)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:5,cap:350,tgt:10,tl:"Target/mo",tv:"10T"},{name:"Further",col:"var(--fur)",act:4,cap:350,tgt:8,tl:"Target/mo",tv:"8T"}],
+    strats:[{i:"📦",t:"IVQF — Breast/Thigh/Inner Fillet/Wing",c:"var(--ivqf)",b:"Breast Unsize, Thigh Unsize, Inner Fillet Unsize, Mid Wing 40G<br>Feb/Apr/May/Jun ต่อเนื่อง<br>🎯 Confirm H2 เป้า 10T/mo"},{i:"🍗",t:"Further Sesame Wings + YTR Cross-sell",c:"var(--fur)",b:"Sesame Wings: Feb 1.7T Apr 7T May 4.3T Jun 1.3T<br>🎯 Confirm H2 8T/mo สม่ำเสมอ<br>🎯 เสนอ YTR Trial"}],
+    actions:[{n:"01",t:"Confirm H2 IVQF 4 SKU — Breast/Thigh/IF/Wing",who:"NICHA",wb:"var(--ivqf-l)",wc:"var(--ivqf)"},{n:"02",t:"Confirm H2 Further Sesame Wings 8T/mo",who:"NICHA",wb:"var(--fur-l)",wc:"var(--fur)"},{n:"03",t:"เสนอ YTR Cross-sell Trial 1 SKU",who:"NICHA",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:25,f:37,no:0,nn:0,y4:39,y5:12,sc:"anchor"},"fur":{c:14,f:6,no:0,nn:0,y4:1,y5:3,sc:"grow"}}
+  },
+  "umios":{
+    tags:[{t:"Active",bg:"var(--grn-l)",c:"var(--grn)"},{t:"NICHA",bg:"var(--border)",c:"var(--t2)"},{t:"YTR+IVQF",bg:"var(--ytr-l)",c:"var(--ytr)"}],
+    title:"UMIOS",
+    sub:"YTR BL หลาย SKU + IVQF | NICHA | ลูกค้าแยกรายจาก OKAYA (ASAHI)",
+    stats:[{v:"383T",l:"YTR YTD",c:"var(--ytr)"},{v:"IVQF",l:"BLK 15-35G",c:"var(--ivqf)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:23,cap:100,tgt:30,tl:"Target/mo",tv:"30T"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:8,cap:350,tgt:15,tl:"Target/mo",tv:"15T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🍢",t:"YTR — ยอดจริงรายเดือน",c:"var(--ytr)",b:"BL 23G BLACK: Feb13 Mar21 Apr29 May26 Jun13 Sep26<br>BL 23G JUCT: Feb9 Mar9 Apr13<br>+ Neck Meat/Tail/Negima/BB Skin/Gizzard 25G<br><strong>YTD ~171T</strong> avg 22T/mo"},{i:"📦",t:"IVQF — BLK 15-25G / 25-35G / SBLK 25-35G",c:"var(--ivqf)",b:"มีใน IVQF Sheet rows 88-95 (NICHA ดูแล)<br>🎯 Confirm H2 Volume, ดูตัวเลขจริงในชีท"},{i:"🥩",t:"Marinade — Cross-sell โอกาสใหม่",c:"var(--mar)",b:"ยังไม่เคยซื้อ Marinade เลย<br>🎯 เสนอ Marinade YTR Premium line Q3"}],
+    actions:[{n:"01",t:"Confirm YTR Oct-Dec — Sep 26.5T Confirmed แล้ว",who:"NICHA",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"ติดตาม IVQF BLK Volume ในชีท — Confirm H2",who:"NICHA",wb:"var(--ivqf-l)",wc:"var(--ivqf)"},{n:"03",t:"เสนอ Marinade Trial Q3",who:"NICHA",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:187,f:145,no:0,nn:0,y4:239,y5:168,sc:"grow"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:196,f:247,no:0,nn:0,y4:17,y5:161,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "okaya_kan":{
+    tags:[{t:"Active",bg:"var(--grn-l)",c:"var(--grn)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"},{t:"YTR",bg:"var(--ytr-l)",c:"var(--ytr)"}],
+    title:"OKAYA (Kanematsu Foods)",
+    sub:"YTR ย้ายจาก Mayekawa | KAN | ซื้อ Pattern Jan/Mar/May/Jul",
+    stats:[{v:"~30T",l:"YTD 2026"},{v:"Jan/Mar/May/Jul",l:"Pattern",c:"var(--ytr)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:8,cap:100,tgt:10,tl:"avg per order month",tv:"10T"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell NPD",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🍢",t:"YTR — 4 SKU ย้ายจาก Mayekawa",c:"var(--ytr)",b:"BB Skin TW18: Jan3.2 Mar4.1 May4.1 Jul4.1<br>BL+Soft Bone TW18: Jan0.6 Mar1.6 May1.6 Jul1.6<br>Gizzard TW18: Jan3.1 Mar2.4 May2.4 Jul2.4<br>BL 45G TW18: Jan3.1 Mar1.9 May1.9 Jul1.9<br>🎯 Confirm Sep/Nov ล่วงหน้า"}],
+    actions:[{n:"01",t:"Confirm Sep/Nov Order — Pattern ชัดเจน Lock ได้เลย",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"เสนอ Marinade Cross-sell",who:"KAN",wb:"var(--mar-l)",wc:"var(--mar)"}],
+    status:{"ytr":{c:40,f:0,no:0,nn:0,y4:0,y5:0,sc:"grow"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:11,f:11,no:0,nn:0,y4:0,y5:11,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "japan_food":{
+    tags:[{t:"Priority #1",bg:"var(--red-l)",c:"var(--red)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"},{t:"Follow up 600T+",bg:"var(--grn-l)",c:"var(--grn)"}],
+    title:"JAPAN FOOD",
+    sub:"Marinade + Further + YTR | NET | Highest Potential 2026 — ITO YOKADO",
+    stats:[{v:"266T",l:"Confirmed YTD"},{v:"+690T",l:"Follow up H2",c:"var(--grn)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"2025=44T→2026=0",tv:"ติดตาม"},{name:"Marinade",col:"var(--mar)",act:23,cap:380,tgt:100,tl:"Follow up/mo",tv:"100T"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:15,cap:350,tgt:15,tl:"Follow up/mo",tv:"15T"}],
+    strats:[{i:"🔥",t:"Marinade — TAK-186-1 ส่ง Offer ก่อน 30 เมษายน!",c:"var(--red)",b:"BLK 20-30G Breaded IVQF: Mar20 Apr13 May39 Jun26<br><strong>Follow up 100T/mo x 6mo Jul-Dec = 600T!</strong><br>Plan Offer 28/4 Valid 30/4 — ต้องส่งทันที"},{i:"🍗",t:"Further — Fried Chicken RX-08 + BEISIA",c:"var(--fur)",b:"RX-08 80G: Jan 15T, Follow up Jun-Dec 15T/mo<br>BEISIA Skewer: On-Hold<br>SBBK TW-63-5: Sample ETD 29/9"},{i:"🍢",t:"YTR RYUHO — ติดตามสาเหตุหาย",c:"var(--ytr)",b:"RYUHO ซื้อ 44T ปี 2025 แต่ 2026 = 0T<br>🎯 ถามสาเหตุ — ราคา? คู่แข่ง? Seasonal?"}],
+    actions:[{n:"01",t:"<strong style='color:var(--red)'>ส่ง Offer TAK-186-1 ก่อน 30 เมษายน</strong> — ปิดได้ = +600T",who:"NET ด่วน!",wb:"var(--red-l)",wc:"var(--red)"},{n:"02",t:"ติดตาม Fried Chicken RX-08 Follow up — ไม่มี Update 2/4",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"03",t:"Update BEISIA Steamed Skewer — On-Hold ถาม Timeline",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"04",t:"ติดตาม RYUHO YTR — 44T หายไปจากปี 2025",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"}],
+    status:{"ytr":{c:0,f:47,no:0,nn:0,y4:46,y5:100,sc:"hot"},"mar":{c:136,f:602,no:20,nn:0,y4:48,y5:85,sc:"anchor"},"ivqf":{c:100,f:566,no:0,nn:0,y4:0,y5:13,sc:"grow"},"fur":{c:30,f:210,no:18,nn:0,y4:30,y5:68,sc:"anchor"}}
+  },
+  "brand_shokuhan":{
+    tags:[{t:"H2 ว่าง",bg:"var(--amb-l)",c:"var(--amb)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"},{t:"YTR 9 Parts",bg:"var(--ytr-l)",c:"var(--ytr)"}],
+    title:"BRAND SHOKUHAN",
+    sub:"YTR ทุก 9 Part | KAN | ซื้อเฉพาะ H1 — H2 ว่างทุกปี",
+    stats:[{v:"138T",l:"H1 2026 (Jan-May)"},{v:"+138T",l:"H2 Target",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:138,cap:1200,tgt:276,tl:"Target ทั้งปี",tv:"276T"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Upsell NPD",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🍢",t:"YTR — ปิด H2 ทุก 9 Part พร้อมกัน",c:"var(--ytr)",b:"BL/Fillet/Neck Skin/Tail/Heart/Gizzard/BB+Yagen ปิด Jan-May<br>🎯 นัด Forecast Meeting ก่อนสิ้น May<br>🎯 เสนอ H2 Package = +138T"},{i:"🥩",t:"Marinade YTR — Upsell Value-added",c:"var(--mar)",b:"ซื้อ YTR Raw อยู่แล้ว<br>🎯 เสนอ Marinade YTR Premium line"}],
+    actions:[{n:"01",t:"นัด Forecast Meeting ก่อนสิ้น May — ถ้าไม่นัดตอนนี้ H2 ว่างเหมือนเดิม",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"เสนอ H2 Package ทุก 9 Part — Volume เท่า H1 = +138T",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"03",t:"ถามสาเหตุซื้อแค่ H1 — Seasonal? Budget?",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:138,f:0,no:0,nn:0,y4:0,y5:168,sc:"anchor"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "red_intel":{
+    tags:[{t:"Growth",bg:"var(--blu-l)",c:"var(--blu)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"},{t:"7 SKU ใหม่",bg:"var(--ivqf-l)",c:"var(--ivqf)"}],
+    title:"RED INTELLIGENCE",
+    sub:"IVQF 7 SKU | NET | New Customer 2026 ที่ Active มาก",
+    stats:[{v:"85T",l:"Mar-Jun 2026"},{v:"+50T",l:"H2 Target",c:"var(--grn)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell NPD",tv:"New"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"Cross-sell NPD",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:9,cap:350,tgt:10,tl:"Target/mo",tv:"10T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"📦",t:"IVQF 7 SKU — Lock H2 ต่อเนื่อง",c:"var(--ivqf)",b:"Drumstick/BLT/Mid Wing/Wing Half Cut/Paw/Breast/Tenderloin<br>Mar + Jun/Jul ซื้อแล้ว<br>🎯 Forecast Request Aug-Dec, Rolling Order Program"}],
+    actions:[{n:"01",t:"ส่ง Forecast Request 7 SKU สำหรับ Aug-Dec",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"02",t:"เสนอ Rolling Order Program ซื้อทุกเดือนแทน Spot",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:85,f:84,no:0,nn:0,y4:170,y5:117,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "okaya_hurxley":{
+    tags:[{t:"Follow up ใหญ่",bg:"var(--blu-l)",c:"var(--blu)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"OKAYA (HURXLEY)",
+    sub:"Marinade AT | KAN | Follow up Jul-Sep = 168T",
+    stats:[{v:"0T",l:"Confirmed 2026"},{v:"+168T",l:"Follow up Jul-Sep",c:"var(--grn)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:56,tl:"Follow up/mo",tv:"56T"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🥩",t:"Marinade AT — Jul 48T + Aug 72T + Sep 48T",c:"var(--mar)",b:"Marination AT ยังไม่มี Confirmed 2026<br>Pipeline: 168T<br>🎯 ส่ง Offer ก่อน Jun สิ้นเดือน"}],
+    actions:[{n:"01",t:"ส่ง Offer Marinade AT ก่อน Jun สิ้นเดือน — Jul 48 + Aug 72 + Sep 48",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:72,y5:144,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "stq":{
+    tags:[{t:"Growth",bg:"var(--blu-l)",c:"var(--blu)"},{t:"EMMA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"STQ",
+    sub:"Further Roasted 2JW | EMMA | เริ่มขาย May/Jun 2026",
+    stats:[{v:"29T",l:"Further YTD (May-Jun)"},{v:"Delay",l:"Launch Nov",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"NPD BL Thigh",tv:"Pending"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:15,cap:350,tgt:20,tl:"Target/mo",tv:"20T"}],
+    strats:[{i:"🍗",t:"Further Roasted 2JW — May/Jun เริ่มแล้ว",c:"var(--fur)",b:"HERB ROASTED 2JW 40-50G: May 14.56T Jun 14.56T<br>Delay ตาม Process เริ่ม Nov<br>🎯 Confirm Nov Launch Volume"},{i:"🥩",t:"Marinade BL Thigh — NPD",c:"var(--mar)",b:"HERB CHICKEN POWDER BL THIGH 70G UP<br>🎯 ติดตาม Sample Feedback"}],
+    actions:[{n:"01",t:"ติดตาม Nov Launch Further Roasted — Confirm Volume",who:"EMMA",wb:"var(--fur-l)",wc:"var(--fur)"},{n:"02",t:"Follow up Marinade BL Thigh NPD",who:"EMMA",wb:"var(--mar-l)",wc:"var(--mar)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:24,no:0,nn:0,y4:0,y5:96,sc:"hot"},"ivqf":{c:8,f:16,no:0,nn:0,y4:55,y5:24,sc:"anchor"},"fur":{c:29,f:87,no:101,nn:0,y4:2,y5:29,sc:"anchor"}}
+  },
+  "tts_tbk":{
+    tags:[{t:"Growth",bg:"var(--blu-l)",c:"var(--blu)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"},{t:"Halal",bg:"var(--grn-l)",c:"var(--grn)"}],
+    title:"TTS (TBK)",
+    sub:"Further Karaage Halal + Katsu | KAN | SKU ใหม่ Sep 2026",
+    stats:[{v:"12T",l:"YTD 2026 (Katsu)"},{v:"7.68T",l:"Sep Halal NEW",c:"var(--grn)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:6,cap:350,tgt:8,tl:"Target/mo",tv:"8T"}],
+    strats:[{i:"🍗",t:"Further Katsu + Halal Karaage ใหม่",c:"var(--fur)",b:"Katsu 95-105G: Mar 5.76T Jun 5.76T<br><strong>Karaage Halal 20-25G: Sep 7.68T (ปิด 23/3)</strong><br>🎯 Sep Delivery ดูแลให้ดี, เสนอ Reorder Oct/Nov"}],
+    actions:[{n:"01",t:"ติดตาม Sep Halal Karaage Delivery — 7.68T ปิดแล้ว",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"},{n:"02",t:"เสนอ Halal Karaage H2 Reorder — ถ้า Sep ดี ต่อยอด",who:"KAN",wb:"var(--grn-l)",wc:"var(--grn)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:19,f:13,no:0,nn:0,y4:0,y5:12,sc:"grow"}}
+  },
+  "jzi":{
+    tags:[{t:"Growth",bg:"var(--blu-l)",c:"var(--blu)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"J.Zi (JF)",
+    sub:"IVQF 5 SKU | NET | ซื้อต่อเนื่อง Mar + Jun/Jul 2026",
+    stats:[{v:"17T",l:"YTD 2026 (Mar+Jun)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"NPD",tv:"New"},{name:"IVQF",col:"var(--ivqf)",act:6,cap:350,tgt:10,tl:"Target/mo",tv:"10T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"📦",t:"IVQF 5 SKU ต่อเนื่อง",c:"var(--ivqf)",b:"Drumstick/Tenderloin/BLT/Mid-Joint Wing/Breast<br>Mar ~16T, Jun/Jul confirmed<br>🎯 Confirm H2 Aug-Dec"}],
+    actions:[{n:"01",t:"Confirm H2 IVQF Aug-Dec — Lock ล่วงหน้า",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:65,f:101,no:0,nn:0,y4:225,y5:168,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "j_oversea":{
+    tags:[{t:"Watch",bg:"var(--amb-l)",c:"var(--amb)"},{t:"EMMA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"J OVERSEA",
+    sub:"Further Nankotsu + Marinade | EMMA | Jan 2026 เท่านั้น ติดตาม Nov",
+    stats:[{v:"18T",l:"Further Jan 2026"},{v:"Nov",l:"Follow up ครั้งต่อไป",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:5,cap:380,tgt:5,tl:"Target/mo",tv:"5T"},{name:"IVQF",col:"var(--ivqf)",act:5,cap:350,tgt:0,tl:"Katsu+MW",tv:"5T"},{name:"Further",col:"var(--fur)",act:18,cap:350,tgt:20,tl:"Target/mo",tv:"20T"}],
+    strats:[{i:"🍗",t:"Further Nankotsu — Stock คาดขายถึง Oct",c:"var(--fur)",b:"Jan 17.76T (ย้ายจาก Dec 2025)<br>Stock คาดขายถึง Oct → ติดตาม Nov<br>🎯 Follow up Nov Reorder"},{i:"🥩",t:"Marinade — MW Drying + BL Katsu",c:"var(--mar)",b:"May 2.8T + 2.52T ปิด May/Jun<br>🎯 ติดตาม H2 Reorder"}],
+    actions:[{n:"01",t:"ติดตาม Nov Reorder Nankotsu — Stock คาดขายถึง Oct",who:"EMMA",wb:"var(--amb-l)",wc:"var(--amb)"},{n:"02",t:"Follow up Marinade H2 — MW Drying + BL Katsu",who:"EMMA",wb:"var(--mar-l)",wc:"var(--mar)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:5,f:5,no:0,nn:0,y4:0,y5:5,sc:"anchor"},"ivqf":{c:5,f:0,no:0,nn:0,y4:5,y5:5,sc:"anchor"},"fur":{c:18,f:0,no:0,nn:0,y4:53,y5:53,sc:"anchor"}}
+  },
+  "lean_fresh":{
+    tags:[{t:"Watch",bg:"var(--amb-l)",c:"var(--amb)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"LEAN AND FRESH (OPTMEAL)",
+    sub:"IVQF Breast | NET | ซื้อเพียง Apr 2026",
+    stats:[{v:"17T",l:"Apr 2026 only"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:17,cap:350,tgt:10,tl:"Target/mo",tv:"10T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"📦",t:"IVQF Breast 220-240G — Health food market",c:"var(--ivqf)",b:"Apr 16.64T เท่านั้น (Optmeal brand)<br>🎯 ติดตาม H2 Reorder, เสนอ Tenderloin/Inner Fillet เพิ่ม"}],
+    actions:[{n:"01",t:"ติดตาม H2 Reorder — ซื้อแค่ Apr ต้องถามว่าสนใจต่อไหม",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:17,f:100,no:0,nn:0,y4:66,y5:50,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "mikage":{
+    tags:[{t:"Supply Issue",bg:"var(--amb-l)",c:"var(--amb)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"MIKAGE",
+    sub:"IVQF Special Cut | KAN | ยอดลด 68% — Supply ไม่เพียงพอ",
+    stats:[{v:"116T",l:"2026 YTD"},{v:"-211T",l:"หายจาก 2025",c:"var(--red)"},{v:"+211T",l:"Recovery",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:18,cap:350,tgt:25,tl:"Recovery Target",tv:"250T/ปี"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🔴",t:"ด่วน — จัดการ Expectation",c:"var(--red)",b:"🎯 KAN โทร MIKAGE สัปดาห์นี้<br>🎯 แจ้ง Supply จริงที่ทำได้ H2<br>🎯 รักษาความสัมพันธ์"},{i:"⚠️",t:"Q3 — Reserve Capacity",c:"var(--amb)",b:"🎯 ผจก ประชุม Supply Chain Reserve 20T/mo<br>🎯 แจ้ง MIKAGE ล่วงหน้า 60 วัน"}],
+    actions:[{n:"01",t:"KAN โทร MIKAGE สัปดาห์นี้ — แจ้ง Volume H2",who:"KAN ด่วน",wb:"var(--amb-l)",wc:"var(--amb)"},{n:"02",t:"ผจก ประชุม Supply Chain — Reserve Capacity Q3",who:"ผจก",wb:"var(--border)",wc:"var(--t2)"},{n:"03",t:"ทำ Supply Agreement Min 20T/mo สำหรับ 2027",who:"ผจก+KAN",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:9,f:27,no:0,nn:0,y4:0,y5:0,sc:"grow"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:107,f:54,no:0,nn:0,y4:0,y5:61,sc:"grow"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "hanwa":{
+    tags:[{t:"ลดลง",bg:"var(--amb-l)",c:"var(--amb)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"HANWA",
+    sub:"Marinade + IVQF | NET | ยอด 2025 = 323T แต่ 2026 ลดเหลือ — Delay Packaging",
+    stats:[{v:"90T",l:"2026 YTD"},{v:"+120T",l:"Follow up H2",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"Cross-sell",tv:"New"},{name:"Marinade",col:"var(--mar)",act:11,cap:380,tgt:80,tl:"Follow up H2",tv:"+80T"},{name:"IVQF",col:"var(--ivqf)",act:20,cap:350,tgt:40,tl:"Follow up H2",tv:"+40T"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🥩",t:"Marinade — Package Deal Sep/Oct",c:"var(--mar)",b:"BLK Breaded T5+FFO: Sep/Nov 20T each<br>BLK 45-50G: Sep 24T Nov 24T<br>BL Strip 4 รส (Miso/Yakiniku/Sanzoku/Gochujang)<br>🎯 Package ทุก SKU = 80T"},{i:"📦",t:"IVQF — BL Strip + BLK Unsize กลับมา",c:"var(--ivqf)",b:"BL Strip 720G: Apr14 Jun6 Jul6<br>BLK Unsize + BLK Breaded: ยังไม่มียอด 2026<br>🎯 Follow up H2 = 40T"}],
+    actions:[{n:"01",t:"ติดตาม Feedback จากประชุม 2/4 — BL Strip + BLK Breaded",who:"NET ด่วน",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"02",t:"เตรียม Offer Sep/Oct BLK Breaded — แจ้งคุย May/Jun",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"03",t:"แก้ปัญหา Packaging — ประสาน NPD",who:"ผจก",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:64,f:195,no:458,nn:0,y4:152,y5:209,sc:"anchor"},"ivqf":{c:26,f:152,no:400,nn:0,y4:60,y5:114,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "global_vision":{
+    tags:[{t:"Credit Risk",bg:"var(--amb-l)",c:"var(--amb)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"GLOBAL VISION",
+    sub:"IVQF | ซื้อลดลง 1FCL/Quarter | ปัญหาการชำระเงิน",
+    stats:[{v:"16T",l:"2026 (Jul Forecast)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:16,cap:350,tgt:5,tl:"1FCL/Q เท่านั้น",tv:"~5T/Q"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"💳",t:"Credit Risk — ลูกค้าจ่ายเงินไม่ดี",c:"var(--amb)",b:"ความถี่ลดจาก Monthly → 1FCL/Q<br>BLK 30-40G, BL 200-220G, SBB, Inner Fillet, Breast<br>🎯 Review Credit ก่อน, เสนอ Prepayment/LC"}],
+    actions:[{n:"01",t:"Review Credit Status — ตรวจ Outstanding ก่อน Order ใหม่",who:"KAN",wb:"var(--amb-l)",wc:"var(--amb)"},{n:"02",t:"เสนอ Prepayment/LC — ป้องกัน Credit Risk",who:"KAN",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:16,f:0,no:0,nn:0,y4:32,y5:30,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "fully_win":{
+    tags:[{t:"Watch",bg:"var(--amb-l)",c:"var(--amb)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"FULLY WIN (UNCLE JIMMY)",
+    sub:"IVQF | NET | ความถี่ลดเป็น 1FCL/Quarter — End market ไม่ดี",
+    stats:[{v:"~0T",l:"2026 YTD"},{v:"1FCL/Q",l:"ความถี่ลดลง",c:"var(--amb)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:3,cap:350,tgt:10,tl:"Target/Q",tv:"1FCL/Q"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"📦",t:"IVQF — End market ไม่ดี ความถี่ลดลง",c:"var(--ivqf)",b:"BLT/Drumstick/Inner Fillet/Mid Wing/Wing Half Cut/Breast<br>ลดจาก Monthly → 1FCL/Q<br>🎯 End-market support / เสนอ SKU แตกต่าง"}],
+    actions:[{n:"01",t:"ติดตาม Next Order Q3 — Pattern 1FCL/Q",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"},{n:"02",t:"ช่วย End-market Support — Recipe/POS Material",who:"NET",wb:"var(--blu-l)",wc:"var(--blu)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:166,y5:32,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "food_union":{
+    tags:[{t:"Credit Risk",bg:"var(--amb-l)",c:"var(--amb)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"FOOD UNION",
+    sub:"IVQF | NET | ความถี่ลดเพราะจ่ายเงินไม่ดี",
+    stats:[{v:"~0T",l:"2026 YTD"},{v:"Credit",l:"ปัญหาชำระเงิน",c:"var(--red)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:2,cap:350,tgt:5,tl:"1FCL/Q",tv:"~5T/Q"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"💳",t:"Credit Risk — ลูกค้าจ่ายเงินไม่ดี",c:"var(--amb)",b:"BL Thigh/Fillet/Mid Wing/Breast<br>ลดจาก Monthly → 1FCL/Q<br>🎯 Prepayment เป็นเงื่อนไข"}],
+    actions:[{n:"01",t:"Review Credit Status ก่อน Order ใหม่",who:"NET",wb:"var(--amb-l)",wc:"var(--amb)"},{n:"02",t:"เสนอ Prepayment Terms",who:"NET",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:32,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "cgc":{
+    tags:[{t:"Watch",bg:"var(--amb-l)",c:"var(--amb)"},{t:"EMMA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"CGC",
+    sub:"Marinade IVQF + Further Hainanese | EMMA | Marinade 3T YTD",
+    stats:[{v:"3T",l:"Marinade YTD 2026"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:2,cap:380,tgt:5,tl:"Target/mo",tv:"5T"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"Hainanese NPD",tv:"Follow up"}],
+    strats:[{i:"🥩",t:"Marinade — NAE HERB BREADED IVQF",c:"var(--mar)",b:"Mar 1.2T Apr 1.8T ต่อเนื่อง<br>🎯 ติดตาม H2 เสนอ Volume เพิ่ม"}],
+    actions:[{n:"01",t:"ติดตาม H2 Marinade Order",who:"EMMA",wb:"var(--border)",wc:"var(--t2)"},{n:"02",t:"ถาม Hainanese Set Re-order — ปิดล่าสุด Oct 2023",who:"EMMA",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:3,f:6,no:0,nn:0,y4:0,y5:3,sc:"anchor"},"ivqf":{c:3,f:6,no:0,nn:0,y4:0,y5:3,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "hopes_food":{
+    tags:[{t:"Micro",bg:"var(--amb-l)",c:"var(--amb)"},{t:"YTR",bg:"var(--ytr-l)",c:"var(--ytr)"}],
+    title:"HOPES FOOD",
+    sub:"YTR หลาย Part | ยอดน้อยมาก — ประเมิน Potential",
+    stats:[{v:"~0T",l:"2026 YTD"},{v:"5 SKU",l:"พร้อมขาย",c:"var(--ytr)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:1,cap:100,tgt:5,tl:"Target/mo",tv:"5T"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🍢",t:"YTR — Gizzard/Neck/Softbone/BL/BB Skin",c:"var(--ytr)",b:"5 SKU TG15 ยอด 2025 ~3T 2026 ~0T<br>🎯 ประเมิน Potential ก่อน Follow up"}],
+    actions:[{n:"01",t:"ประเมิน Potential — ยอดน้อยมาก คุ้มค่า Follow up ไหม",who:"—",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:2,f:0,no:0,nn:0,y4:3,y5:3,sc:"anchor"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:14,f:35,no:0,nn:0,y4:59,y5:73,sc:"anchor"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "tts_okura":{
+    tags:[{t:"Watch",bg:"var(--amb-l)",c:"var(--amb)"},{t:"KAN",bg:"var(--border)",c:"var(--t2)"}],
+    title:"TTS (O-kura)",
+    sub:"YTR BL+Negima+Gizzard+Neck Skin | KAN | มี 4 SKU แต่ยังไม่มียอด 2026",
+    stats:[{v:"0T",l:"2026 YTD"},{v:"4 SKU",l:"พร้อมขาย",c:"var(--ytr)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:5,tl:"Target Trial",tv:"1 FCL"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"🍢",t:"YTR 4 SKU — มีในระบบแต่ยังไม่ขาย",c:"var(--ytr)",b:"BL 30G, BL+Negima 30G, Gizzard 30G, Neck Skin 30G (R15)<br>🎯 ถาม Status — ยังสนใจไหม เสนอ Trial"}],
+    actions:[{n:"01",t:"ถาม Status — ยังสนใจ YTR ไหม มี 4 SKU พร้อม",who:"KAN",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:4,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "mayekawa":{
+    tags:[{t:"ย้ายไป OKAYA",bg:"var(--border)",c:"var(--t2)"},{t:"EMMA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"MAYEKAWA",
+    sub:"YTR SKU ย้ายไป OKAYA (Kanematsu) แล้ว | ยังมี EMMA SKU เดิม",
+    stats:[{v:"0T",l:"2026 YTD"},{v:"ย้าย",l:"ไปซื้อผ่าน OKAYA",c:"var(--t3)"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ย้ายไป OKAYA",tv:"ดูที่ OKAYA"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"}],
+    strats:[{i:"ℹ️",t:"SKU ย้ายไปซื้อผ่าน OKAYA (Kanematsu Foods)",c:"var(--t2)",b:"YTR BL 45G, BL+Softbone 40G, BB Skin 35G, Gizzard 35G<br>ยอดดูที่ OKAYA (Kanematsu Foods) แทน"}],
+    actions:[{n:"01",t:"ติดตามผ่าน OKAYA (Kanematsu) — SKU เดิมยังขายอยู่",who:"KAN",wb:"var(--border)",wc:"var(--t2)"}],
+    status:{"ytr":{c:0,f:0,no:2,nn:0,y4:0,y5:44,sc:"hot"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"}}
+  },
+  "malmoto":{
+    tags:[{t:"Dormant",bg:"var(--red-l)",c:"var(--red)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"MALMOTO",
+    sub:"Further BL Chicken Nanban | NET | มี SKU แต่ยังไม่เคยสั่งเลย",
+    stats:[{v:"0T",l:"ยังไม่มียอดเลย"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:1,tl:"Target Q3",tv:"Trial FCL"}],
+    strats:[{i:"🍗",t:"Further BL Chicken Nanban — Trial",c:"var(--fur)",b:"มี SKU ในระบบแต่ยอด = 0 ทุกปี<br>🎯 ส่ง Sample + Tasting Session Q3"}],
+    actions:[{n:"01",t:"ส่ง Sample BL Chicken Nanban + Technical Sheet",who:"NET",wb:"var(--red-l)",wc:"var(--red)"},{n:"02",t:"นัด Tasting Session Q3 — Target 1 FCL Trial",who:"NET",wb:"var(--red-l)",wc:"var(--red)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:735,y5:0,sc:"none"}}
+  },
+  "meadowvale":{
+    tags:[{t:"Dormant",bg:"var(--red-l)",c:"var(--red)"},{t:"NET",bg:"var(--border)",c:"var(--t2)"}],
+    title:"MEADOWVALE",
+    sub:"Further Katsu 2 SKU | NET | มี SKU พร้อม แต่ยังไม่มียอด",
+    stats:[{v:"0T",l:"ยังไม่มียอดเลย"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:1,tl:"Target Q3",tv:"Mixed FCL"}],
+    strats:[{i:"🍗",t:"Further Katsu — Mixed FCL Trial",c:"var(--fur)",b:"Katsu Fillets 120G + Katsu Tenders 40G<br>🎯 Mixed FCL: ทั้ง 2 Size ใน 1 Container<br>Katsu เป็น Category ที่ญี่ปุ่นนิยมมาก"}],
+    actions:[{n:"01",t:"ส่ง Sample Katsu Fillet + Tenders + Cooking Suggestion",who:"NET",wb:"var(--red-l)",wc:"var(--red)"},{n:"02",t:"เสนอ Mixed FCL Trial Q3",who:"NET",wb:"var(--red-l)",wc:"var(--red)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:0,f:0,no:0,nn:0,y4:54,y5:0,sc:"none"}}
+  },
+  "yokorei":{
+    tags:[{t:"Dormant",bg:"var(--red-l)",c:"var(--red)"},{t:"EMMA",bg:"var(--border)",c:"var(--t2)"}],
+    title:"YOKOREI",
+    sub:"Further Fried Chicken 2JW | EMMA | NPD ลูกค้าเดิม ยังไม่มียอด",
+    stats:[{v:"0T",l:"2026 YTD"}],
+    donuts:[{name:"YTR",col:"var(--ytr)",act:0,cap:100,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Marinade",col:"var(--mar)",act:0,cap:380,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"IVQF",col:"var(--ivqf)",act:0,cap:350,tgt:0,tl:"ไม่มียอด",tv:"—"},{name:"Further",col:"var(--fur)",act:0,cap:350,tgt:1,tl:"Target Trial",tv:"1 FCL"}],
+    strats:[{i:"🍗",t:"Further Fried Chicken 2JW 30-40G",c:"var(--fur)",b:"NPD ลูกค้าเดิม มี SKU แต่ยอด = 0<br>🎯 ถาม Status Project ยังดำเนินอยู่ไหม"}],
+    actions:[{n:"01",t:"ถาม Status — ยังสนใจ Fried Chicken 2JW ไหม",who:"EMMA",wb:"var(--red-l)",wc:"var(--red)"}],
+    status:{"ytr":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"mar":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"ivqf":{c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:"none"},"fur":{c:15,f:0,no:0,nn:0,y4:0,y5:15,sc:"anchor"}}
+  },
+};
+var PROD_NAMES = {ytr:"YTR",mar:"Marinade",ivqf:"IVQF",fur:"Further"};
+var PROD_COL   = {ytr:"var(--ytr)",mar:"var(--mar)",ivqf:"var(--ivqf)",fur:"var(--fur)"};
+var SC_CFG = {
+  anchor:{lbl:"&#128309; Anchor",  tc:"#1a4f96",bg:"#dbeafe",reason:"Backbone — ซื้อต่อเนื่องยอดสูง"},
+  hot:   {lbl:"&#128293; Hot",     tc:"#b84c1a",bg:"#fdebd0",reason:"Follow up ใหญ่ / ศักยภาพสูง"},
+  grow:  {lbl:"&#128200; Growing", tc:"#2d6a4f",bg:"#d8f3dc",reason:"ยอดเติบโตต่อเนื่อง 3 ปี"},
+  watch: {lbl:"&#128065; Watch",   tc:"#b45309",bg:"#fef3c7",reason:"ยอดลด/ไม่ต่อเนื่อง — ติดตาม"},
+  npd:   {lbl:"&#128161; NPD",     tc:"#6921a3",bg:"#ede9fe",reason:"โอกาส SKU ใหม่"},
+  none:  {lbl:"&#8212;",           tc:"#9e9a94",bg:"#f4f3f0",reason:"ยังไม่มีข้อมูล"}
+};
+
+/* ── SIDEBAR TOGGLE ── */
+function tog(gid,hdr) {
+  var el=document.getElementById(gid);
+  var arrow=hdr.querySelector(".ga");
+  var open=arrow.classList.contains("open");
+  if(open){
+    el.style.maxHeight=el.scrollHeight+"px";
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      el.style.transition="max-height .25s ease";
+      el.style.maxHeight="0";
+      el.classList.add("closed");
+      arrow.classList.remove("open");
+    });});
+  } else {
+    el.classList.remove("closed");
+    el.style.transition="max-height .25s ease";
+    el.style.maxHeight=el.scrollHeight+"px";
+    arrow.classList.add("open");
+    setTimeout(function(){el.style.maxHeight="none";},280);
+  }
+}
+
+/* ── PANEL SWITCH ── */
+
+function makeOvCombined(){
+  var ctx=document.getElementById('ov-combined');
+  if(!ctx||ctx._done) return;
+  ctx._done=true;
+  var keys=['ytr','mar','ivqf','fur'];
+  var PROD_OV={
+    ytr:{d24:[24,32,43,41,36,60,58,12,23,12,85,30],d25:[48,106,91,65,67,82,48,72,80,39,37,65],d26:[36,67,90,91,83,15,39,38,0,17,11,0],
+    cap:100, col:'#0d9488'},
+    mar:{d24:[90,24,65,24,96,108,87,24,136,92,68,83],d25:[24,96,68,86,72,34,148,114,140,141,88,111],d26:[12,19,121,115,93,94,46,24,24,24,24,24],
+    cap:380, col:'#2563eb'},
+    ivqf:{d24:[132,116,133,138,102,161,203,186,169,147,184,168],d25:[66,82,155,167,89,103,190,169,260,159,235,164],d26:[55,46,246,213,178,263,231,129,88,115,33,33],
+    cap:350, col:'#e07b39'},
+    fur:{d24:[97,76,61,61,94,61,61,61,112,111,62,91],d25:[15,7,40,0,30,20,15,7,33,21,30,30],d26:[42,20,49,41,52,40,15,15,8,0,15,0],
+    cap:350, col:'#7c3aed'}
+  };
+  var labels=['YTR','Marinade','IVQF','Further'];
+  var colors=['#0d9488','#2563eb','#e07b39','#7c3aed'];
+  function haOv(hex,a){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
+  var d24=[],d25=[],d26=[];
+  keys.forEach(function(k){
+    var p=PROD_OV[k];
+    d24.push(Math.round(p.d24.reduce(function(a,b){return a+b;},0)));
+    d25.push(Math.round(p.d25.reduce(function(a,b){return a+b;},0)));
+    d26.push(Math.round(p.d26.reduce(function(a,b){return a+b;},0)));
+  });
+
+  /* inline afterDraw plugin — วาดตัวเลขเหนือแท่ง */
+  var labelPlugin={
+    id:'ovLabels',
+    afterDatasetsDraw:function(chart){
+      var c2d=chart.ctx;
+      chart.data.datasets.forEach(function(ds,di){
+        var meta=chart.getDatasetMeta(di);
+        if(meta.hidden) return;
+        meta.data.forEach(function(bar,i){
+          var v=ds.data[i];
+          if(!v) return;
+          var txt=v.toLocaleString()+'T';
+          c2d.save();
+          c2d.font='500 9px "IBM Plex Mono",monospace';
+          c2d.fillStyle=colors[i];
+          c2d.textAlign='center';
+          c2d.textBaseline='bottom';
+          c2d.fillText(txt, bar.x, bar.y-2);
+          c2d.restore();
+        });
+      });
+    }
+  };
+
+  new Chart(ctx,{
+    type:'bar',
+    plugins:[labelPlugin],
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'2024',data:d24,backgroundColor:colors.map(function(c){return haOv(c,0.2);}),borderColor:colors.map(function(c){return haOv(c,0.4);}),borderWidth:1,borderRadius:3},
+        {label:'2025',data:d25,backgroundColor:colors.map(function(c){return haOv(c,0.55);}),borderColor:colors.map(function(c){return haOv(c,0.7);}),borderWidth:1,borderRadius:3},
+        {label:'2026 YTD',data:d26,backgroundColor:colors.map(function(c){return haOv(c,0.9);}),borderColor:colors,borderWidth:1.5,borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:12,boxHeight:8,padding:14,color:'#65625c'}},
+        tooltip:{callbacks:{label:function(item){return item.dataset.label+': '+item.raw.toLocaleString()+'T';}}}
+      },
+      scales:{
+        x:{ticks:{font:{size:12},color:'#65625c'},grid:{display:false}},
+        y:{ticks:{font:{size:9,family:'monospace'},color:'#9e9a94',maxTicksLimit:6,callback:function(v){return v.toLocaleString()+'T';}},grid:{color:'rgba(0,0,0,0.05)',lineWidth:0.5}}
+      },
+      layout:{padding:{top:24}}
+    }
+  });
+}
+
+function go(id,el) {
+  var panels=document.querySelectorAll(".panel");
+  for(var i=0;i<panels.length;i++) panels[i].classList.remove("active");
+  var navs=document.querySelectorAll(".ni,.nav-sum");
+  for(var i=0;i<navs.length;i++) navs[i].classList.remove("active");
+  var p=document.getElementById("panel-"+id);
+  if(p) p.classList.add("active");
+  if(el) el.classList.add("active");
+  document.getElementById("main-area").scrollTop=0;
+  if(id==="trends"){
+    setTimeout(function(){if(window._initTrendCharts) window._initTrendCharts();},80);
+  } else if(id==="overview"){
+    setTimeout(function(){makeOvCombined();},80);
+  } else {
+    setTimeout(function(){drawDonuts(id);},60);
+  }
+}
+
+/* ── DONUT ENGINE ── */
+function resolveColor(cssVar){
+  var div=document.createElement("div");
+  div.style.color=cssVar;
+  document.body.appendChild(div);
+  var v=getComputedStyle(div).color;
+  document.body.removeChild(div);
+  return v;
+}
+function drawDonut(cid,act,cap,tgt,colVar){
+  var el=document.getElementById(cid);
+  if(!el) return;
+  var ctx=el.getContext("2d");
+  var cx=46,cy=46,r=34,lw=9,PI2=Math.PI*2,start=-Math.PI/2;
+  var actP=cap>0?Math.min(act/cap,1):0;
+  var tgtP=cap>0?Math.min(tgt/cap,1):0;
+  var col=resolveColor(colVar);
+  ctx.clearRect(0,0,92,92);
+  ctx.beginPath();ctx.arc(cx,cy,r,0,PI2);
+  ctx.strokeStyle="#e2e0db";ctx.lineWidth=lw;ctx.stroke();
+  if(tgtP>actP+0.01){
+    ctx.beginPath();ctx.arc(cx,cy,r,start+PI2*actP,start+PI2*tgtP);
+    ctx.strokeStyle="#fbbf24";ctx.lineWidth=lw;ctx.lineCap="round";ctx.stroke();
+  }
+  if(actP>0.005){
+    ctx.beginPath();ctx.arc(cx,cy,r,start,start+PI2*actP);
+    ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap="round";ctx.stroke();
+  }
+}
+function drawDonuts(panelId){
+  var d=DATA[panelId];
+  if(!d||!d.donuts) return;
+  var prods=["ytr","mar","ivqf","fur"];
+  for(var i=0;i<d.donuts.length;i++){
+    var dn=d.donuts[i];
+    drawDonut("dc-"+panelId+"-"+i,dn.act,dn.cap,dn.tgt,dn.col);
+  }
+}
+
+/* ── BUILD PANEL ── */
+function buildStatus(panelId){
+  var sd=DATA[panelId].status;
+  if(!sd) return "";
+  var prods=["ytr","mar","ivqf","fur"];
+  var cardsHtml="";
+  for(var pi=0;pi<prods.length;pi++){
+    var p=prods[pi];
+    var d=sd[p];
+    var sc=SC_CFG[d.sc]||SC_CFG.none;
+    var hasAny=d.c+d.f+d.no+d.nn+d.y4+d.y5>0;
+    var dimCls=hasAny?"":" dim";
+    var badge=d.sc!=="none"?'<span class="pros-badge" style="background:'+sc.bg+';color:'+sc.tc+'">'+sc.lbl+'</span>':"";
+    var rows=[
+      {dot:"#dce8f8",lbl:"Confirmed",val:d.c},
+      {dot:"#c8d8f0",lbl:"Follow up",val:d.f},
+      {dot:"#e8eef6",lbl:"NPD ลูกค้าเดิม",val:d.no},
+      {dot:"#f0f4fa",lbl:"NPD ลูกค้าใหม่",val:d.nn}
+    ];
+    var rowsHtml="";
+    for(var ri=0;ri<rows.length;ri++){
+      var r=rows[ri];
+      rowsHtml+='<div class="sts-row"><div class="sts-dot" style="background:'+r.dot+'"></div><div class="sts-lbl">'+r.lbl+'</div><div class="sts-val'+(r.val===0?" z":"")+'">'+( r.val>0 ? r.val+"T" : "&#8212;" )+'</div></div>';
+    }
+    var trendHtml="";
+    if(d.y4>0||d.y5>0){
+      var arr=d.y5>d.y4?"&#8599;":d.y5<d.y4?"&#8600;":"&#8594;";
+      var arrCol=d.y5>d.y4?"var(--grn)":d.y5<d.y4?"var(--red)":"var(--t3)";
+      trendHtml='<div class="trend-row">'
+        +'<div class="tyr"><div class="tyr-l">2024</div><div class="tyr-v" style="color:var(--t2)">'+(d.y4>0?d.y4+"T":"0")+'</div></div>'
+        +'<div class="t-arr" style="color:'+arrCol+'">'+arr+'</div>'
+        +'<div class="tyr"><div class="tyr-l">2025</div><div class="tyr-v" style="color:var(--t2)">'+(d.y5>0?d.y5+"T":"0")+'</div></div>'
+        +'<div class="t-arr" style="color:'+arrCol+'">'+arr+'</div>'
+        +'<div class="tyr"><div class="tyr-l">2026</div><div class="tyr-v" style="color:'+PROD_COL[p]+'">'+(d.c>0?d.c+"T":"&#8212;")+'</div></div>'
+        +'</div>';
+    }
+    cardsHtml+='<div class="sts-card'+dimCls+'">'
+      +'<div class="sts-head"><div class="sts-prod" style="color:'+PROD_COL[p]+'">'+PROD_NAMES[p]+'</div>'+badge+'</div>'
+      +'<div>'+rowsHtml+'</div>'+trendHtml+'</div>';
+  }
+  var prosHtml="";var hasPros=false;
+  for(var pi2=0;pi2<prods.length;pi2++){
+    var p2=prods[pi2];var d2=sd[p2];
+    if(d2.sc==="none") continue;
+    hasPros=true;
+    var sc2=SC_CFG[d2.sc];
+    var opp=d2.f+d2.no+d2.nn;
+    prosHtml+='<div class="pros-item" style="background:'+sc2.bg+';border-color:'+sc2.tc+'44">'
+      +'<div class="pros-item-name" style="color:'+PROD_COL[p2]+'">'+PROD_NAMES[p2]+'</div>'
+      +'<div class="pros-item-score" style="color:'+sc2.tc+'">'+sc2.lbl+'</div>'
+      +'<div class="pros-item-reason">'+sc2.reason+(opp>0?"<br>Pipeline: "+opp+"T":"")+'</div></div>';
+  }
+  var prosSec=hasPros?'<div class="pros-sec"><div class="pros-title">&#127919; Prospect Analysis &#8212; เทียบ 3 ปี</div><div class="pros-grid">'+prosHtml+'</div></div>':"";
+  return '<div class="sec" style="margin-top:18px">สถานะรายสินค้า &#8212; Confirmed &middot; Follow up &middot; NPD</div>'
+    +'<div class="sts-grid">'+cardsHtml+'</div>'+prosSec;
+}
+
+function buildPanel(id,d){
+  var tagsHtml="";
+  for(var i=0;i<d.tags.length;i++){
+    var t=d.tags[i];
+    tagsHtml+='<span class="tag" style="background:'+t.bg+';color:'+t.c+'">'+t.t+'</span>';
+  }
+  var statsHtml="";
+  for(var i=0;i<d.stats.length;i++){
+    var s=d.stats[i];
+    var style=s.c?' style="color:'+s.c+'"':"";
+    statsHtml+='<div class="sbox"><div class="sv"'+style+'>'+s.v+'</div><div class="sl">'+s.l+'</div></div>';
+  }
+  var donutsHtml="";
+  for(var i=0;i<d.donuts.length;i++){
+    var dn=d.donuts[i];
+    var pct=dn.cap>0?Math.round(dn.act/dn.cap*100):0;
+    var dim=dn.act===0&&dn.tgt===0?" dim":"";
+    var pctCol=dn.act>0?dn.col:"var(--t3)";
+    donutsHtml+='<div class="dc'+dim+'">'
+      +'<div class="dc-name" style="color:'+dn.col+'">'+dn.name+'</div>'
+      +'<div class="dring"><canvas id="dc-'+id+'-'+i+'" width="92" height="92"></canvas>'
+      +'<div class="dctr"><div class="dpct" style="color:'+pctCol+'">'+pct+'%</div><div class="dpct-s">of cap</div></div></div>'
+      +'<div class="dleg">'
+      +'<div class="dr"><div class="dd" style="background:'+dn.col+'"></div><div class="dlb">Actual/mo</div><div class="dv">'+(dn.act>0?dn.act+"T":"&#8212;")+'</div></div>'
+      +'<div class="dr"><div class="dd" style="background:var(--border)"></div><div class="dlb">Cap/mo</div><div class="dv">'+dn.cap+'T</div></div>'
+      +'<div class="dr"><div class="dd" style="background:#fbbf24"></div><div class="dlb">'+dn.tl+'</div><div class="dv" style="color:'+(dn.tgt>0?"var(--grn)":"var(--t3)")+'">'+dn.tv+'</div></div>'
+      +'</div></div>';
+  }
+  var stratsHtml="";
+  for(var i=0;i<d.strats.length;i++){
+    var s=d.strats[i];
+    stratsHtml+='<div class="sc"><div class="sc-t"><span style="font-size:15px">'+s.i+'</span><span style="color:'+s.c+'">'+s.t+'</span></div><div class="sc-b">'+s.b+'</div></div>';
+  }
+  var sgCls=d.strats.length===1?"sg one":"sg";
+  var actHtml="";
+  for(var i=0;i<d.actions.length;i++){
+    var a=d.actions[i];
+    actHtml+='<div class="ar"><span class="an">'+a.n+'</span><div class="at">'+a.t+'</div><span class="aw-who" style="background:'+a.wb+';color:'+a.wc+'">'+a.who+'</span></div>';
+  }
+  return '<div id="panel-'+id+'" class="panel">'
+    +'<div class="ph"><div>'
+    +'<div class="ph-title">'+d.title+'</div>'
+    +'<div class="ph-sub">'+d.sub+'</div>'
+    +'<div class="ph-tags">'+tagsHtml+'</div>'
+    +'</div><div class="stats-wrap">'+statsHtml+'</div></div>'
+    +'<div class="sec">ยอดขาย vs Capacity</div>'
+    +'<div class="dg">'+donutsHtml+'</div>'
+    +buildStatus(id)
+    +'<div class="sec" style="margin-top:20px">กลยุทธ์การเพิ่มยอดขาย</div>'
+    +'<div class="'+sgCls+'">'+stratsHtml+'</div>'
+    +'<div class="sec" style="margin-top:14px">Action Plan</div>'
+    +'<div class="aw">'+actHtml+'</div>'
+    +'</div>';
+}
+
+/* ── INIT PANELS ── */
+window.addEventListener("DOMContentLoaded", function(){
+  setTimeout(function(){makeOvCombined();},200);
+  var area=document.getElementById("main-area");
+  var keys=Object.keys(DATA);
+  for(var i=0;i<keys.length;i++){
+    var id=keys[i];
+    area.insertAdjacentHTML("beforeend",buildPanel(id,DATA[id]));
+  }
+  var groups=document.querySelectorAll(".grp-items");
+  for(var i=0;i<groups.length;i++){
+    groups[i].style.maxHeight=groups[i].scrollHeight+"px";
+  }
+  document.querySelectorAll(".ofill").forEach(function(el){
+    var w=el.style.width; el.style.width="0";
+    setTimeout(function(){el.style.transition="width 1s ease";el.style.width=w;},150);
+  });
+});
+
+function parseCSV(txt){
+  var lines=txt.trim().split("\n").filter(function(l){return l.trim();});
+  if(lines.length<2) return [];
+  var headers=lines[0].split(",").map(function(h){return h.trim().replace(/"/g,"").toLowerCase();});
+  return lines.slice(1).map(function(line){
+    var vals=line.split(",").map(function(v){return v.trim().replace(/"/g,"");});
+    var obj={};
+    headers.forEach(function(h,i){obj[h]=vals[i]||"";});
+    return obj;
+  });
+}
+
+/* ── DRAG DROP CSV ── */
+["ytr","mar","ivqf","fur"].forEach(function(key){
+  setTimeout(function(){
+    var slot=document.getElementById("up-s-"+key);
+    if(!slot) return;
+    slot.addEventListener("dragover",function(e){e.preventDefault();slot.style.borderColor="var(--t1)";});
+    slot.addEventListener("dragleave",function(){slot.style.borderColor="";});
+  },200);
+});
+
+/* ── MONTHLY DATA FROM GOOGLE SHEETS ── */
+var MONTHLY_DATA = {
+  ytr: {
+    "2024": [24,32,43,41,36,60,58,12,23,12,85,30],
+    "2025": [48,106,91,65,67,82,48,72,80,39,37,65],
+    "2026": [36,67,90,91,83,15,39,38,0,17,11,0],
+    cap: 100
+  },
+  mar: {
+    "2024": [90,24,65,24,96,108,87,24,136,92,68,83],
+    "2025": [24,96,68,86,72,34,148,114,140,141,88,111],
+    "2026": [12,19,121,115,93,94,46,24,24,24,24,24],
+    cap: 380
+  },
+  ivqf: {
+    "2024": [132,116,133,138,102,161,203,186,169,147,184,168],
+    "2025": [66,82,155,167,89,103,190,169,260,159,235,164],
+    "2026": [55,46,246,213,178,263,231,129,88,115,33,33],
+    cap: 350
+  },
+  fur: {
+    "2024": [97,76,61,61,94,61,61,61,112,111,62,91],
+    "2025": [15,7,40,0,30,20,15,7,33,21,30,30],
+    "2026": [42,20,49,41,52,40,15,15,8,0,15,0],
+    cap: 350
+  }
+};
+
+var MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function buildTrendChart(prodKey, label, col) {
+  var d = MONTHLY_DATA[prodKey];
+  var W=660, H=155, PL=38, PR=12, PT=18, PB=24;
+  var gW=W-PL-PR, gH=H-PT-PB;
+  var all24=d["2024"], all25=d["2025"], all26=d["2026"];
+  var maxV = Math.max.apply(null, all24.concat(all25).concat(all26).concat([d.cap])) * 1.12;
+  if(maxV===0) maxV=1;
+  /* 12 columns — step = gW/12, center of col i = PL + i*step + step/2 */
+  var step = gW/12;
+  function xOf(i){return PL + i*step + step/2;}
+  function yOf(v){return PT + gH*(1 - v/maxV);}
+
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">';
+  
+  // Grid lines + Y labels
+  for(var g=0;g<=4;g++){
+    var gy = PT + gH*(g/4);
+    var gv = Math.round(maxV*(1-g/4));
+    svg += '<line x1="'+PL+'" y1="'+gy+'" x2="'+(W-PR)+'" y2="'+gy+'" stroke="#e2e0db" stroke-width="1"/>';
+    svg += '<text x="'+(PL-4)+'" y="'+(gy+3)+'" font-size="8" fill="#9e9a94" text-anchor="end" font-family="monospace">'+gv+'</text>';
+  }
+  
+  // Month labels — always all 12
+  for(var m=0;m<12;m++){
+    svg += '<text x="'+xOf(m)+'" y="'+(H-5)+'" font-size="8" fill="#9e9a94" text-anchor="middle" font-family="monospace">'+MONTHS_SHORT[m]+'</text>';
+  }
+
+  // Vertical separator lines between years (light)
+  svg += '<line x1="'+xOf(3.5)+'" y1="'+PT+'" x2="'+xOf(3.5)+'" y2="'+(H-PB)+'" stroke="#e2e0db" stroke-width="0" stroke-dasharray="2,2" opacity="0"/>';
+
+  // Target line
+  var ty=yOf(d.cap);
+  svg += '<line x1="'+PL+'" y1="'+ty+'" x2="'+(W-PR)+'" y2="'+ty+'" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3"/>';
+  svg += '<text x="'+(W-PR-2)+'" y="'+(ty-3)+'" font-size="7" fill="#b45309" text-anchor="end" font-family="monospace">'+d.cap+'</text>';
+  
+  // 2024 line — connect ALL 12 months (0 shown as baseline dot)
+  var pts24=[];
+  for(var i=0;i<12;i++){
+    var v24 = all24[i]||0;
+    pts24.push(xOf(i)+","+yOf(v24));
+  }
+  svg+='<polyline points="'+pts24.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="1" opacity="0.22" stroke-linejoin="round" stroke-linecap="round"/>';
+  
+  // 2025 line — connect ALL 12 months
+  var pts25=[];
+  for(var i=0;i<12;i++){
+    var v25 = all25[i]||0;
+    pts25.push(xOf(i)+","+yOf(v25));
+  }
+  svg+='<polyline points="'+pts25.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="1.5" opacity="0.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  
+  // 2026 bars — ALL 12 months (empty months show no bar but keep x position)
+  var pts26=[];
+  for(var i=0;i<12;i++){
+    var v=all26[i]||0;
+    var bx=xOf(i)-step*0.3, bw=step*0.6, by=yOf(v), bh=gH+PT-by;
+    if(v>0){
+      svg+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+col+'" opacity="0.85" rx="2"/>';
+      // value label above bar
+      var lbl = v>=10 ? Math.round(v) : v.toFixed(1);
+      if(by > PT+12){
+        svg+='<text x="'+xOf(i)+'" y="'+(by-2)+'" font-size="7.5" fill="'+col+'" text-anchor="middle" font-family="monospace" font-weight="600">'+lbl+'</text>';
+      } else {
+        /* label inside bar at top if bar is very tall */
+        svg+='<text x="'+xOf(i)+'" y="'+(by+9)+'" font-size="7.5" fill="#fff" text-anchor="middle" font-family="monospace" font-weight="600">'+lbl+'</text>';
+      }
+    }
+    pts26.push(xOf(i)+","+yOf(v));
+  }
+  // 2026 connecting line (only between months with data)
+  var seg26=[]; var segs26=[];
+  for(var i=0;i<12;i++){
+    if(all26[i]>0){ seg26.push(xOf(i)+","+yOf(all26[i])); }
+    else { if(seg26.length>1) segs26.push(seg26); seg26=[]; }
+  }
+  if(seg26.length>1) segs26.push(seg26);
+  for(var s=0;s<segs26.length;s++){
+    svg+='<polyline points="'+segs26[s].join(" ")+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  }
+  
+  svg += '</svg>';
+  
+  var sum24=all24.reduce(function(a,b){return a+b;},0);
+  var sum25=all25.reduce(function(a,b){return a+b;},0);
+  var sum26=all26.reduce(function(a,b){return a+b;},0);
+  
+  return '<div class="sc" style="padding:12px 14px;margin-bottom:10px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    +'<div style="font-size:11px;font-weight:600;color:'+col+'">'+label+'</div>'
+    +'<div style="display:flex;gap:12px;font-size:9px;font-family:monospace;color:var(--t3)">'
+    +'<span style="opacity:0.4">2024: <strong>'+Math.round(sum24)+'T</strong></span>'
+    +'<span style="opacity:0.6">2025: <strong>'+Math.round(sum25)+'T</strong></span>'
+    +'<span style="color:'+col+'">2026: <strong>'+Math.round(sum26)+'T</strong></span>'
+    +'<span style="color:#b45309">■ Cap '+d.cap+'T/mo</span>'
+    +'</div></div>'
+    +svg+'</div>';
+}
+
+function buildAllTrends(){
+  var prods=[
+    ['ytr','YTR','#0d9488'],
+    ['mar','Marinade','#2563eb'],
+    ['ivqf','IVQF','#e07b39'],
+    ['fur','Further','#7c3aed']
+  ];
+  var html='';
+  for(var i=0;i<prods.length;i++){
+    html+=buildTrendChart(prods[i][0],prods[i][1],prods[i][2]);
+  }
+  var el=document.getElementById('trend-section');
+  if(el) el.innerHTML=html;
+}
+
+window.addEventListener("DOMContentLoaded",buildAllTrends);
+</script>
+
+<script>
+/* ─── LIVE SYNC FROM APPS SCRIPT ─── */
+var APPS_URL = 'https://script.google.com/macros/s/AKfycby5-Yy7I08kLsNPwagcjakQ8oyf84yDAd88XUNiFpVVdgatqZ0rveSicPqVu_ZkxF9e/exec';
+var PROD_KEYS_LS = ['ytr','mar','ivqf','fur'];
+var CFG_LS = {
+  ytr:  {cap:1200, mo:100, cssVar:'#0d9488'},
+  mar:  {cap:4560, mo:380, cssVar:'#2563eb'},
+  ivqf: {cap:4200, mo:350, cssVar:'#e07b39'},
+  fur:  {cap:4200, mo:350, cssVar:'#7c3aed'}
+};
+
+function parseSheetLS(rows){
+  var d24=new Array(12).fill(0), d25=new Array(12).fill(0), d26=new Array(12).fill(0);
+  var fu26=new Array(12).fill(0);
+  var hdr = -1;
+  for(var i=0; i<Math.min(rows.length,8); i++){
+    if(String(rows[i][0]||'').trim().toUpperCase()==='STATUS'){ hdr=i; break; }
+  }
+  if(hdr<0) return null;
+  for(var i=hdr+1; i<rows.length; i++){
+    var row=rows[i]; if(!row||row.length<6) continue;
+    var st=String(row[0]||'').trim();
+    if(!st) continue;
+    var isC=st==='Confirmed', isFU=st==='Follow up', isNPD=st.indexOf('NPD')===0;
+    if(!isC&&!isFU&&!isNPD) continue;
+    for(var m=0;m<12;m++){
+      var v24=parseFloat(String(row[5+m]||'').replace(/,/g,''))||0;
+      var v25=parseFloat(String(row[17+m]||'').replace(/,/g,''))||0;
+      var v26=parseFloat(String(row[29+m]||'').replace(/,/g,''))||0;
+      if(isC){ d24[m]+=v24; d25[m]+=v25; d26[m]+=v26; }
+      else if(isFU||isNPD){ fu26[m]+=v26; }
+    }
+  }
+  return {d24:d24, d25:d25, d26:d26, fu26:fu26};
+}
+
+function sumArr(a){ return a.reduce(function(s,v){return s+v;},0); }
+
+function applyLiveData(key, parsed){
+  /* Update PROD object used by trend charts */
+  if(window.PROD && window.PROD[key]){
+    PROD[key].d24 = parsed.d24;
+    PROD[key].d25 = parsed.d25;
+    PROD[key].d26 = parsed.d26;
+  }
+  /* Update PROD_OV used by overview combined chart */
+  if(window._PROD_OV && window._PROD_OV[key]){
+    _PROD_OV[key].d24 = parsed.d24;
+    _PROD_OV[key].d25 = parsed.d25;
+    _PROD_OV[key].d26 = parsed.d26;
+  }
+  /* Update overview summary cards */
+  var total26 = Math.round(sumArr(parsed.d26));
+  var total25 = Math.round(sumArr(parsed.d25));
+  var total24 = Math.round(sumArr(parsed.d24));
+  var cfg = CFG_LS[key];
+  var pct = (total26/cfg.cap*100).toFixed(1);
+  var fw  = Math.min(parseFloat(pct),100).toFixed(1);
+  /* Find and update the overview card for this product */
+  var cards = document.querySelectorAll('.oc');
+  var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
+  var idx = keyMap[key];
+  if(cards[idx]){
+    var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
+    cards[idx].innerHTML =
+      '<div class="ol">'+labelMap[key]+'</div>'
+      +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
+      +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
+      +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.cssVar+'"></div></div>';
+  }
+  /* Update sidebar count */
+  var sbEls = document.querySelectorAll('.ni .nv');
+  /* Sidebar order: overview, trends, then star/growth/watch customers — find by text matching */
+  /* Update YoY in trend charts labels if visible */
+  var tcId = {ytr:'tc-ytr', mar:'tc-mar', ivqf:'tc-ivqf', fur:'tc-fur'};
+  var tcSummary = document.querySelector('[aria-label="'+
+    (key==='ytr'?'YTR':(key==='mar'?'Marinade':(key==='ivqf'?'IVQF':'Further')))+' monthly sales 2024-2026"]');
+  if(tcSummary){
+    var lbl = (key==='ytr'?'YTR':(key==='mar'?'Marinade':(key==='ivqf'?'IVQF':'Further')));
+    tcSummary.setAttribute('aria-label', lbl+' monthly sales 2024-2026 — '+total24+'T/'+total25+'T/'+total26+'T');
+  }
+}
+
+function liveLoad(){
+  var btn = document.getElementById('btn-refresh');
+  var msg = document.getElementById('refresh-msg');
+  var ts  = document.getElementById('hdr-ts');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดึงข้อมูล...'; }
+  if(msg){ msg.textContent=''; msg.style.color='var(--t3)'; }
+
+  var fetches = PROD_KEYS_LS.map(function(k){
+    return fetch(APPS_URL+'?prod='+k)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(rows){ return {key:k, data:parseSheetLS(rows)}; })
+      .catch(function(e){ console.warn('Failed '+k, e); return {key:k, data:null}; });
+  });
+
+  Promise.all(fetches).then(function(results){
+    var ok=0;
+    results.forEach(function(r){ if(r.data){ applyLiveData(r.key, r.data); ok++; } });
+
+    if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
+
+    if(ok>0){
+      var now = new Date();
+      var nowStr = now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      if(ts) ts.textContent = nowStr;
+      if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
+      /* Re-render trend charts with new data */
+      if(window._initTrendCharts){ window._initTrendCharts(); }
+      /* Re-render overview combined */
+      var ovCtx = document.getElementById('ov-combined');
+      if(ovCtx){ ovCtx._done=false; if(window.makeOvCombined) makeOvCombined(); }
+    } else {
+      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script Deploy'; msg.style.color='var(--red)'; }
+      if(ts) ts.textContent = 'ดึงข้อมูลไม่ได้';
+    }
+  });
+}
+
+/* Auto-load on page open */
+window.addEventListener('DOMContentLoaded', function(){
+  setTimeout(liveLoad, 600); /* slight delay so charts init first */
+});
+</script>
+</body>
+</html>
