@@ -1681,7 +1681,6 @@ function applyLiveData(key, parsed){
       DATA[ck].status[key].f  = Math.round(bc.f26||0);
       DATA[ck].status[key].y4 = Math.round(bc.c24||0);
       DATA[ck].status[key].y5 = Math.round(bc.c25||0);
-      console.log('[apply] '+ck+'.'+key+' = c26:'+Math.round(bc.c26||0)+'T c25:'+Math.round(bc.c25||0)+'T');
       /* donuts */
       if(DATA[ck].donuts){
         DATA[ck].donuts.forEach(function(d){
@@ -1716,98 +1715,140 @@ function liveLoad(){
   var btn = document.getElementById('btn-refresh');
   var msg = document.getElementById('refresh-msg');
   var ts  = document.getElementById('hdr-ts');
-  /* ถ้าเปิดจาก local file — fetch ไม่ได้เพราะ CORS */
+
   if(isLocalFile()){
     if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
-    if(msg){ 
-      msg.innerHTML='⚠️ <strong>เปิดจากไฟล์ local — ดึงข้อมูลไม่ได้</strong><br>'
-               +'กรุณา upload ขึ้น <a href="https://netlify.com" target="_blank" style="color:var(--blu)">Netlify</a> '
-               +'หรือเปิดผ่าน web server';
-      msg.style.color='var(--amb)'; 
-    }
+    if(msg){ msg.textContent='⚠️ เปิดจากไฟล์ local — กรุณาใช้ Netlify'; msg.style.color='var(--amb)'; }
     return;
   }
+
   if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดึงข้อมูล...'; }
   if(msg){ msg.textContent=''; }
 
   var fetches = PROD_KEYS_LS.map(function(k){
-    return fetch(APPS_URL+'?prod='+k, {mode:'cors'})
+    return fetch(APPS_URL+'?prod='+k)
       .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
       .then(function(parsed){
         if(parsed.error) throw new Error(parsed.error);
-        if(Array.isArray(parsed)) throw new Error('Apps Script ยังเป็น v2 — กรุณาอัพเดทเป็น v3');
+        if(Array.isArray(parsed)) throw new Error('Apps Script เก่า กรุณาอัพเดท v3');
         return {key:k, data:parsed};
       })
-      .catch(function(e){
-        /* CORS error เกิดเมื่อเปิดจาก file:// — ให้แจ้งผู้ใช้ */
-        if(e.message && (e.message.indexOf('Failed to fetch')>=0 || e.message.indexOf('NetworkError')>=0 || e.message.indexOf('CORS')>=0)){
-          if(msg){ msg.textContent='⚠️ กรุณาเปิดผ่าน Netlify ไม่ใช่จากไฟล์ local'; msg.style.color='var(--amb)'; }
-        }
-        console.warn('[liveLoad] '+k+':', e.message);
-        return {key:k, data:null};
-      });
+      .catch(function(e){ console.warn('[fetch]',k,e.message); return {key:k, data:null}; });
   });
 
   Promise.all(fetches).then(function(results){
-    var ok=0;
-    results.forEach(function(r){ if(r.data){ applyLiveData(r.key, r.data); ok++; } });
+    /* Step 1: update DATA ทั้งหมดก่อน */
+    var ok = 0;
+    results.forEach(function(r){
+      if(!r.data) return;
+      ok++;
+      var key    = r.key;
+      var parsed = r.data;
+
+      /* update PROD สำหรับ chart */
+      if(window.PROD && window.PROD[key]){
+        PROD[key].d24 = parsed.d24;
+        PROD[key].d25 = parsed.d25;
+        PROD[key].d26 = parsed.d26;
+      }
+      if(window.MONTHLY_DATA && window.MONTHLY_DATA[key]){
+        MONTHLY_DATA[key]['2024'] = parsed.d24;
+        MONTHLY_DATA[key]['2025'] = parsed.d25;
+        MONTHLY_DATA[key]['2026'] = parsed.d26;
+      }
+
+      /* update DATA per customer */
+      var prodNameMap = {ytr:'YTR', mar:'Marinade', ivqf:'IVQF', fur:'Further'};
+      var prodName = prodNameMap[key];
+      if(parsed.byCustomer){
+        Object.keys(parsed.byCustomer).forEach(function(ck){
+          if(!window.DATA || !DATA[ck]) return;
+          var bc = parsed.byCustomer[ck];
+          if(!DATA[ck].status) DATA[ck].status = {};
+          if(!DATA[ck].status[key]) DATA[ck].status[key]={c:0,f:0,no:0,nn:0,y4:0,y5:0,sc:'none'};
+          DATA[ck].status[key].c  = Math.round(bc.c26||0);
+          DATA[ck].status[key].f  = Math.round(bc.f26||0);
+          DATA[ck].status[key].y4 = Math.round(bc.c24||0);
+          DATA[ck].status[key].y5 = Math.round(bc.c25||0);
+          if(DATA[ck].donuts){
+            DATA[ck].donuts.forEach(function(d){
+              if(d.name===prodName) d.act = Math.round(bc.c26||0);
+            });
+          }
+        });
+      }
+
+      /* update summary cards */
+      var total26 = Math.round((parsed.d26||[]).reduce(function(a,b){return a+b;},0));
+      var cfg = CFG_LS[key];
+      var pct = (total26/cfg.cap*100).toFixed(1);
+      var fw  = Math.min(parseFloat(pct),100).toFixed(1);
+      var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
+      var cards  = document.querySelectorAll('.oc');
+      var idx    = keyMap[key];
+      var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
+      if(cards[idx]){
+        cards[idx].innerHTML =
+          '<div class="ol">'+labelMap[key]+'</div>'
+          +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
+          +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
+          +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.cssVar+'"></div></div>';
+      }
+    });
 
     if(btn){ btn.disabled=false; btn.textContent='🔄 ดึงข้อมูลใหม่จาก Sheets'; }
 
-    if(ok>0){
-      var now = new Date();
-      var nowStr = now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      if(ts)  ts.textContent  = nowStr;
-      if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
+    if(ok === 0){
+      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script'; msg.style.color='var(--red)'; }
+      return;
+    }
 
-      /* Re-render charts */
-      if(window.buildAllTrends)    buildAllTrends();
-      if(window._initTrendCharts)  window._initTrendCharts();
+    /* Step 2: timestamp */
+    var now = new Date();
+    var nowStr = now.toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    if(ts)  ts.textContent = nowStr;
+    if(msg){ msg.textContent='✅ อัปเดตสำเร็จ — '+nowStr; msg.style.color='var(--grn)'; }
+
+    /* Step 3: rebuild charts ด้วยข้อมูลใหม่ */
+    try{ if(window.buildAllTrends) buildAllTrends(); }catch(e){}
+    try{ initTrendCharts(); }catch(e){ console.warn('initTrendCharts:',e.message); }
+    try{
       var ovCtx = document.getElementById('ov-combined');
       if(ovCtx){ ovCtx._done=false; if(window.makeOvCombined) makeOvCombined(); }
+    }catch(e){}
 
-      /* Re-render ALL customer panels — ใช้ IIFE แก้ closure bug */
-      (function(){
-        var keys = Object.keys(window.DATA||{});
-        function rebuildOne(ck){
-          var existing = document.getElementById('panel-'+ck);
-          if(existing && window.buildPanel){
-            buildPanel(ck);
-          }
-        }
-        function redrawOne(ck){
-          if(window.drawDonuts) drawDonuts(ck);
-        }
-        /* rebuild HTML ทั้งหมดก่อน */
-        keys.forEach(function(ck){ rebuildOne(ck); });
-        /* draw donuts หลัง DOM settle */
-        setTimeout(function(){
-          keys.forEach(function(ck){ redrawOne(ck); });
-        }, 50);
-      })();
+    /* Step 4: rebuild ALL panels (DATA อัพแล้วใน Step 1) */
+    var custKeys = Object.keys(window.DATA||{});
+    custKeys.forEach(function(ck){
+      var el = document.getElementById('panel-'+ck);
+      if(el && window.buildPanel) try{ buildPanel(ck); }catch(e){}
+    });
 
-      /* Update sidebar counts */
-      document.querySelectorAll('.ni').forEach(function(ni){
-        var nn = ni.querySelector('.nn');
-        var nv = ni.querySelector('.nv');
-        if(!nn||!nv) return;
-        var custLabel = nn.textContent.trim();
-        var ck = null;
-        Object.keys(CUST_KEY_MAP).forEach(function(k){ if(k===custLabel) ck=CUST_KEY_MAP[k]; });
-        if(ck && window.DATA && DATA[ck]){
-          var tot=0;
-          ['ytr','mar','ivqf','fur'].forEach(function(p){
-            if(DATA[ck].status&&DATA[ck].status[p]) tot+=DATA[ck].status[p].c||0;
-          });
-          if(tot>0) nv.textContent=tot+'T';
-        }
+    /* Step 5: redraw donuts หลัง DOM settle */
+    setTimeout(function(){
+      custKeys.forEach(function(ck){
+        try{ if(window.drawDonuts) drawDonuts(ck); }catch(e){}
       });
+    }, 100);
 
-    } else {
-      if(msg){ msg.textContent='❌ ดึงข้อมูลไม่ได้ — ตรวจสอบ Apps Script'; msg.style.color='var(--red)'; }
-    }
+    /* Step 6: update sidebar counts */
+    document.querySelectorAll('.ni').forEach(function(ni){
+      var nn = ni.querySelector('.nn');
+      var nv = ni.querySelector('.nv');
+      if(!nn||!nv) return;
+      var custLabel = nn.textContent.trim();
+      var ck = CUST_KEY_MAP[custLabel]||null;
+      if(ck && window.DATA && DATA[ck] && DATA[ck].status){
+        var tot=0;
+        ['ytr','mar','ivqf','fur'].forEach(function(p){
+          if(DATA[ck].status[p]) tot+=DATA[ck].status[p].c||0;
+        });
+        if(tot>0) nv.textContent=tot+'T';
+      }
+    });
   });
 }
+
 
 /* Auto-load on page open */
 window.addEventListener('DOMContentLoaded', function(){
