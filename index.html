@@ -1594,7 +1594,7 @@ window.addEventListener("DOMContentLoaded",buildAllTrends);
 
 <script>
 /* ─── LIVE SYNC FROM APPS SCRIPT ─── */
-var APPS_URL = 'https://script.google.com/macros/s/AKfycby5-Yy7I08kLsNPwagcjakQ8oyf84yDAd88XUNiFpVVdgatqZ0rveSicPqVu_ZkxF9e/exec';
+var APPS_URL = 'https://script.google.com/macros/s/AKfycbxpRgZ5va-x3dRybaibgHZKL6cbarQqDVvda6WuQu9_C0YJYPOgZ6c0dD4g1OGxXZS9/exec';
 var PROD_KEYS_LS = ['ytr','mar','ivqf','fur'];
 var CFG_LS = {
   ytr:  {cap:1200, mo:100, cssVar:'#0d9488'},
@@ -1602,85 +1602,6 @@ var CFG_LS = {
   ivqf: {cap:4200, mo:350, cssVar:'#e07b39'},
   fur:  {cap:4200, mo:350, cssVar:'#7c3aed'}
 };
-
-function parseSheetLS(rows){
-  var d24=new Array(12).fill(0), d25=new Array(12).fill(0), d26=new Array(12).fill(0);
-  var fu26=new Array(12).fill(0);
-  var hdr = -1;
-  for(var i=0; i<Math.min(rows.length,8); i++){
-    if(String(rows[i][0]||'').trim().toUpperCase()==='STATUS'){ hdr=i; break; }
-  }
-  if(hdr<0) return null;
-  for(var i=hdr+1; i<rows.length; i++){
-    var row=rows[i]; if(!row||row.length<6) continue;
-    var st=String(row[0]||'').trim();
-    if(!st) continue;
-    var isC=st==='Confirmed', isFU=st==='Follow up', isNPD=st.indexOf('NPD')===0;
-    if(!isC&&!isFU&&!isNPD) continue;
-    for(var m=0;m<12;m++){
-      var v24=parseFloat(String(row[5+m]||'').replace(/,/g,''))||0;
-      var v25=parseFloat(String(row[17+m]||'').replace(/,/g,''))||0;
-      var v26=parseFloat(String(row[29+m]||'').replace(/,/g,''))||0;
-      if(isC){ d24[m]+=v24; d25[m]+=v25; d26[m]+=v26; }
-      else if(isFU||isNPD){ fu26[m]+=v26; }
-    }
-  }
-  return {d24:d24, d25:d25, d26:d26, fu26:fu26};
-}
-
-function applyLiveData(key, parsed){
-  /* 1. Update PROD object (trend charts) */
-  if(window.PROD && window.PROD[key]){
-    PROD[key].d24 = parsed.d24;
-    PROD[key].d25 = parsed.d25;
-    PROD[key].d26 = parsed.d26;
-  }
-  /* 2. Update PROD_OV (overview combined chart) */
-  if(window._PROD_OV && window._PROD_OV[key]){
-    _PROD_OV[key].d24 = parsed.d24;
-    _PROD_OV[key].d25 = parsed.d25;
-    _PROD_OV[key].d26 = parsed.d26;
-  }
-  /* 3. Update MONTHLY_DATA (SVG trend section) */
-  if(window.MONTHLY_DATA && window.MONTHLY_DATA[key]){
-    MONTHLY_DATA[key]['2024'] = parsed.d24;
-    MONTHLY_DATA[key]['2025'] = parsed.d25;
-    MONTHLY_DATA[key]['2026'] = parsed.d26;
-  }
-
-  /* 4. Recalculate per-customer status from raw parsed rows */
-  /* We store per-customer breakdown from the sheet parse */
-  if(parsed.byCustomer){
-    Object.keys(parsed.byCustomer).forEach(function(custKey){
-      if(window.DATA && DATA[custKey] && DATA[custKey].status && DATA[custKey].status[key]){
-        var bc = parsed.byCustomer[custKey];
-        DATA[custKey].status[key].c = Math.round(bc.c26);
-        DATA[custKey].status[key].f = Math.round(bc.f26);
-        DATA[custKey].status[key].y4 = Math.round(bc.c24);
-        DATA[custKey].status[key].y5 = Math.round(bc.c25);
-      }
-    });
-  }
-
-  /* 5. Update overview summary cards */
-  var total26 = Math.round(sumArr(parsed.d26));
-  var total25 = Math.round(sumArr(parsed.d25));
-  var total24 = Math.round(sumArr(parsed.d24));
-  var cfg = CFG_LS[key];
-  var pct = (total26/cfg.cap*100).toFixed(1);
-  var fw  = Math.min(parseFloat(pct),100).toFixed(1);
-  var cards = document.querySelectorAll('.oc');
-  var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
-  var idx = keyMap[key];
-  if(cards[idx]){
-    var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
-    cards[idx].innerHTML =
-      '<div class="ol">'+labelMap[key]+'</div>'
-      +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
-      +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
-      +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.cssVar+'"></div></div>';
-  }
-}
 
 /* ── CUSTOMER NAME → DATA KEY MAP ── */
 var CUST_KEY_MAP = {
@@ -1762,6 +1683,59 @@ function parseSheetLS(rows){
     }
   }
   return {d24:d24, d25:d25, d26:d26, fu26:fu26, byCustomer:byCustomer};
+}
+
+/* ── HELPERS ── */
+function sumArr(a){ var s=0; for(var i=0;i<a.length;i++) s+=a[i]; return s; }
+
+/* ── APPLY LIVE DATA TO ALL UI COMPONENTS ── */
+function applyLiveData(key, parsed){
+  /* 1. Update PROD object (trend charts) */
+  if(window.PROD && window.PROD[key]){
+    PROD[key].d24 = parsed.d24;
+    PROD[key].d25 = parsed.d25;
+    PROD[key].d26 = parsed.d26;
+  }
+  /* 2. Update _PROD_OV (overview combined chart) */
+  if(window._PROD_OV && window._PROD_OV[key]){
+    _PROD_OV[key].d24 = parsed.d24;
+    _PROD_OV[key].d25 = parsed.d25;
+    _PROD_OV[key].d26 = parsed.d26;
+  }
+  /* 3. Update MONTHLY_DATA (SVG trend section) */
+  if(window.MONTHLY_DATA && window.MONTHLY_DATA[key]){
+    MONTHLY_DATA[key]['2024'] = parsed.d24;
+    MONTHLY_DATA[key]['2025'] = parsed.d25;
+    MONTHLY_DATA[key]['2026'] = parsed.d26;
+  }
+  /* 4. Update per-customer breakdown in DATA */
+  if(parsed.byCustomer){
+    Object.keys(parsed.byCustomer).forEach(function(custKey){
+      if(window.DATA && DATA[custKey] && DATA[custKey].status && DATA[custKey].status[key]){
+        var bc = parsed.byCustomer[custKey];
+        DATA[custKey].status[key].c  = Math.round(bc.c26);
+        DATA[custKey].status[key].f  = Math.round(bc.f26);
+        DATA[custKey].status[key].y4 = Math.round(bc.c24);
+        DATA[custKey].status[key].y5 = Math.round(bc.c25);
+      }
+    });
+  }
+  /* 5. Update overview summary cards */
+  var total26 = Math.round(sumArr(parsed.d26));
+  var cfg = CFG_LS[key];
+  var pct = (total26/cfg.cap*100).toFixed(1);
+  var fw  = Math.min(parseFloat(pct),100).toFixed(1);
+  var cards = document.querySelectorAll('.oc');
+  var keyMap = {ytr:0, mar:1, ivqf:2, fur:3};
+  var idx = keyMap[key];
+  if(cards[idx]){
+    var labelMap = {ytr:'YTR — 100T/mo', mar:'Marinade — 380T/mo', ivqf:'IVQF — 350T/mo', fur:'Further — 350T/mo'};
+    cards[idx].innerHTML =
+      '<div class="ol">'+labelMap[key]+'</div>'
+      +'<div class="ov" style="color:'+cfg.cssVar+'">'+total26.toLocaleString()+'T</div>'
+      +'<div class="os">Confirmed 2026 | Cap ปี '+cfg.cap.toLocaleString()+'T ('+pct+'%)</div>'
+      +'<div class="obar"><div class="ofill" style="width:'+fw+'%;background:'+cfg.cssVar+'"></div></div>';
+  }
 }
 
 function liveLoad(){
