@@ -715,6 +715,9 @@ function trendLine(data){
 function makeProductChart(canvasId, key){
   var ctx=document.getElementById(canvasId);
   if(!ctx) return;
+  /* destroy chart เก่าก่อนสร้างใหม่ */
+  var existing = Chart.getChart(ctx);
+  if(existing) existing.destroy();
   var d=PROD[key];
   var nulls12=new Array(12).fill(null);
   var capLine=new Array(36).fill(d.cap);
@@ -770,6 +773,8 @@ function makeProductChart(canvasId, key){
 function makeCombinedChart(){
   var ctx=document.getElementById('tc-combined');
   if(!ctx) return;
+  var existing = Chart.getChart(ctx);
+  if(existing) existing.destroy();
   var keys=['ytr','mar','ivqf','fur'];
   var labels=['YTR','Marinade','IVQF','Further'];
   var colors=['#0d9488','#2563eb','#e07b39','#7c3aed'];
@@ -1155,6 +1160,8 @@ function makeOvCombined(){
   var ctx=document.getElementById('ov-combined');
   if(!ctx||ctx._done) return;
   ctx._done=true;
+  var existingOv = Chart.getChart(ctx);
+  if(existingOv) existingOv.destroy();
   var keys=['ytr','mar','ivqf','fur'];
   var PROD_OV={
     ytr:{d24:[24,32,43,41,36,60,58,12,23,12,85,30],d25:[48,106,91,65,67,82,48,72,80,39,37,65],d26:[36,67,90,91,83,15,39,38,0,17,11,0],
